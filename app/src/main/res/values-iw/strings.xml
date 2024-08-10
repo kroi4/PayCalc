@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PayCalc</string>
+    <string name="select_start_date_and_time">בחר תאריך ושעת התחלה</string>
+    <string name="select_end_date_and_time">בחר תאריך ושעת סיום</string>
+    <string name="finish">סיים</string>
+    <string name="total_hours">סה\"כ שעות</string>
+    <string name="save">שמור</string>
+    <string name="basic_salary">שכר בסיס</string>
+    <string name="additional_salary">תוספת שכר</string>
+    <string name="settings">הגדרות</string>
+</resources>

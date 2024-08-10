@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/my_nav"
+    app:startDestination="@id/allItemsFragment2">
+    <fragment
+        android:id="@+id/allItemsFragment2"
+        android:name="il.co.paycalc.ui.screens.AllItemsFragment"
+        android:label="AllItemsFragment" >
+        <action
+            android:id="@+id/action_allItemsFragment2_to_addItemFragment2"
+            app:destination="@id/addItemFragment"
+            app:enterAnim="@anim/from_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/from_right"
+            app:popExitAnim="@anim/to_left" />
+        <action
+            android:id="@+id/action_allItemsFragment2_to_settingsFragment2"
+            app:destination="@id/settingsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addItemFragment"
+        android:name="il.co.paycalc.ui.screens.AddItemFragment"
+        android:label="AddItemFragment" >
+        <action
+            android:id="@+id/action_addItemFragment_to_allItemsFragment23"
+            app:destination="@id/allItemsFragment2"
+            app:enterAnim="@anim/from_right"
+            app:exitAnim="@anim/to_left"
+            app:popEnterAnim="@anim/from_left"
+            app:popExitAnim="@anim/to_right"
+            app:popUpTo="@id/allItemsFragment2"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="il.co.paycalc.ui.screens.SettingsFragment"
+        android:label="SettingsFragment" />
+
+
+</navigation>
