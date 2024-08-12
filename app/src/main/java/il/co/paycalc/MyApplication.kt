@@ -8,9 +8,6 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val database = EventDatabase.getDatabase(applicationContext)
-        val eventDao = database?.eventDao()
 
-//        eventRepository = EventRepository(database!!, remoteDataSource, eventDao!!)
     }
 }

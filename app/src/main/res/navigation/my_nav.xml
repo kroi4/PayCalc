@@ -17,7 +17,11 @@
             app:popExitAnim="@anim/to_left" />
         <action
             android:id="@+id/action_allItemsFragment2_to_settingsFragment2"
-            app:destination="@id/settingsFragment" />
+            app:destination="@id/settingsFragment"
+            app:enterAnim="@anim/from_left"
+            app:exitAnim="@anim/to_right"
+            app:popEnterAnim="@anim/from_right"
+            app:popExitAnim="@anim/to_left" />
     </fragment>
     <fragment
         android:id="@+id/addItemFragment"
@@ -36,7 +40,17 @@
     <fragment
         android:id="@+id/settingsFragment"
         android:name="il.co.paycalc.ui.screens.SettingsFragment"
-        android:label="SettingsFragment" />
+        android:label="SettingsFragment" >
+        <action
+            android:id="@+id/action_settingsFragment_to_allItemsFragment2"
+            app:destination="@id/allItemsFragment2"
+            app:enterAnim="@anim/from_right"
+            app:exitAnim="@anim/to_left"
+            app:popEnterAnim="@anim/from_left"
+            app:popExitAnim="@anim/to_right"
+            app:popUpTo="@id/allItemsFragment2"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 
 </navigation>

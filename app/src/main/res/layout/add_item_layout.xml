@@ -12,21 +12,37 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:paddingBottom="16dp"
+        >
 
         <Button
             android:id="@+id/buttonSelectStartDateTime"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:maxLines="1"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMinTextSize="10sp"
+            android:autoSizeMaxTextSize="16sp"
+
             android:text="@string/select_start_date_and_time"
             android:padding="8dp" />
+
+        <View
+            android:layout_width="16dp"
+            android:layout_height="match_parent" />
+
 
         <Button
             android:id="@+id/buttonSelectEndDateTime"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:maxLines="1"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMinTextSize="10sp"
+            android:autoSizeMaxTextSize="16sp"
             android:text="@string/select_end_date_and_time"
             android:padding="8dp" />
     </LinearLayout>
@@ -36,10 +52,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/total_hours"
+        android:maxLines="1"
+        android:autoSizeTextType="uniform"
+        android:autoSizeMinTextSize="16sp"
+        android:autoSizeMaxTextSize="18sp"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
         android:textSize="18sp"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
-        android:paddingTop="16dp" />
+        android:textAlignment="center"/>
 
     <Button
         android:layout_width="wrap_content"

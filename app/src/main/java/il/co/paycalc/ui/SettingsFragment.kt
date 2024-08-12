@@ -45,7 +45,7 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                 workSessionViewModel.updateWages(hourlyWage, additionalWages)
 
                 // נווט חזרה למסך הקודם
-                findNavController().navigateUp()
+                findNavController().navigate(R.id.action_settingsFragment_to_allItemsFragment2)
             }
         }
 

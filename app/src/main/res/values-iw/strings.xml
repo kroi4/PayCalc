@@ -9,4 +9,5 @@
     <string name="basic_salary">שכר בסיס</string>
     <string name="additional_salary">תוספת שכר</string>
     <string name="settings">הגדרות</string>
+    <string name="hours">שעות</string>
 </resources>

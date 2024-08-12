@@ -18,6 +18,9 @@ interface EventDao {
     @Update
     suspend fun updateWorkSession(workSession: WorkSession)
 
+    @Update
+    suspend fun update(workSession: WorkSession)
+
     @Delete
     suspend fun deleteWorkSession(workSession: WorkSession)
 
