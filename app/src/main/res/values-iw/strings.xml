@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Existing Strings -->
     <string name="app_name">PayCalc</string>
     <string name="select_start_date_and_time">בחר תאריך ושעת התחלה</string>
     <string name="select_end_date_and_time">בחר תאריך ושעת סיום</string>
     <string name="finish">סיום</string>
-    <string name="total_hours">סה\"כ שעות</string>
+    <string name="total_hours">סה"כ שעות</string>
     <string name="save">שמור</string>
     <string name="basic_salary">שכר בסיס</string>
     <string name="additional_salary">תוספת שכר</string>
@@ -18,4 +18,10 @@
     <string name="evening">ערב</string>
     <string name="morning">בוקר</string>
     <string name="set_times">הגדר זמנים</string>
+    <string name="end_date_before_start_date">תאריך הסיום לא יכול להיות קטן מתאריך ההתחלה.</string>
+    <string name="end_time_before_start_time">שעת הסיום לא יכולה להיות קטנה או שווה לשעת ההתחלה באותו היום.</string>
+    <string name="calculated_result">סה"כ שעות עבודה: %.2f\n(שעות נוספות: %.2f)\n\nסה"כ שכר: %.2f₪\n(שכר משעות נוספות: %.2f₪)</string>
+    <string name="please_fill_all_fields">אנא מלא את כל השדות.</string>
+    <string name="please_set_start_time_first">אנא הגדר תחילה את שעת ההתחלה.</string>
+    <string name="add_shift">הוספת משמרת</string>
 </resources>

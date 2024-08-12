@@ -17,6 +17,8 @@ import il.co.paycalc.databinding.AddItemLayoutBinding
 import il.co.paycalc.ui.viewmodel.WorkSessionViewModel
 import il.co.paycalc.ui.viewmodel.WorkSessionViewModelFactory
 import il.co.paycalc.utils.autoCleared
+import il.co.paycalc.utils.calculateTotalSalary
+import il.co.paycalc.utils.showToast
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -47,9 +49,50 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
     ): View? {
         binding = AddItemLayoutBinding.inflate(layoutInflater)
 
-        binding.apply {
+        // Disable the end time button initially
+        binding.buttonSelectEndTime.isEnabled = false
 
-            // Listener for selecting the start date
+        val calendar = Calendar.getInstance()
+        startDate = calendar.timeInMillis
+        endDate = calendar.timeInMillis
+
+        binding.buttonSelectStartDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
+        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
+
+
+        binding.apply {
+            radioGroupShiftType.setOnCheckedChangeListener { _, checkedId ->
+                val calendar = Calendar.getInstance().apply { timeInMillis = startDate ?: 0L }
+                when (checkedId) {
+                    R.id.radioMorning -> {
+                        startTime = workSessionViewModel.morningShiftStartTime
+                        endTime = workSessionViewModel.morningShiftEndTime
+                        endDate = startDate // תאריך סיום זהה לתאריך התחלה
+                        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+                    }
+                    R.id.radioAfternoon -> {
+                        startTime = workSessionViewModel.eveningShiftStartTime
+                        endTime = workSessionViewModel.eveningShiftEndTime
+                        endDate = startDate // תאריך סיום זהה לתאריך התחלה
+                        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+                    }
+                    R.id.radioNight -> {
+                        startTime = workSessionViewModel.nightShiftStartTime
+                        endTime = workSessionViewModel.nightShiftEndTime
+                        calendar.add(Calendar.DATE, 1) // הוספת יום אחד לתאריך הסיום
+                        endDate = calendar.timeInMillis
+                        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+                    }
+                }
+
+                // Enable the end time button when any shift type is selected
+                binding.buttonSelectEndTime.isEnabled = true
+
+                updateShiftTimeButtons()
+                updateCalculatedResult()
+            }
+
+
             buttonSelectStartDate.setOnClickListener {
                 val calendar = Calendar.getInstance()
                 DatePickerDialog(
@@ -57,9 +100,20 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     { _, year, monthOfYear, dayOfMonth ->
                         calendar.set(year, monthOfYear, dayOfMonth)
                         startDate = calendar.timeInMillis
+                        binding.buttonSelectStartDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
 
-                        val formattedDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
-                        buttonSelectStartDate.text = formattedDate
+                        // העתקת תאריך התחלה לתאריך סיום
+                        if (binding.radioGroupShiftType.checkedRadioButtonId != R.id.radioNight) {
+                            endDate = startDate
+                        } else {
+                            // אם זה משמרת לילה, תאריך הסיום יהיה יום אחרי
+                            calendar.add(Calendar.DATE, 1)
+                            endDate = calendar.timeInMillis
+                        }
+                        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+
+                        // Enable the end time button since a start time is now set
+                        binding.buttonSelectEndTime.isEnabled = true
 
                         updateCalculatedResult()
                     },
@@ -69,38 +123,33 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                 ).show()
             }
 
-            // Listener for selecting the start time
             buttonSelectStartTime.setOnClickListener {
-                val calendar = Calendar.getInstance()
-                TimePickerDialog(
-                    requireContext(),
-                    { _, hourOfDay, minute ->
-                        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
-                        calendar.set(Calendar.MINUTE, minute)
-                        startTime = calendar.timeInMillis
+                showTimePicker(startTime) { time ->
+                    startTime = time
+                    binding.buttonSelectStartTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
 
-                        val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
-                        buttonSelectStartTime.text = formattedTime
+                    // Enable the end time button when start time is selected
+                    binding.buttonSelectEndTime.isEnabled = true
 
-                        updateCalculatedResult()
-                    },
-                    calendar.get(Calendar.HOUR_OF_DAY),
-                    calendar.get(Calendar.MINUTE),
-                    true
-                ).show()
+                    updateCalculatedResult()
+                }
             }
 
-            // Listener for selecting the end date
             buttonSelectEndDate.setOnClickListener {
                 val calendar = Calendar.getInstance()
                 DatePickerDialog(
                     requireContext(),
                     { _, year, monthOfYear, dayOfMonth ->
                         calendar.set(year, monthOfYear, dayOfMonth)
-                        endDate = calendar.timeInMillis
+                        val selectedEndDate = calendar.timeInMillis
 
-                        val formattedDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
-                        buttonSelectEndDate.text = formattedDate
+                        if (selectedEndDate >= startDate!!) {
+                            endDate = selectedEndDate
+                            buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+                        } else {
+                            // הצגת הודעה למשתמש אם תאריך הסיום קטן מתאריך ההתחלה
+                            showToast(requireContext(), getString(R.string.end_date_before_start_date))
+                        }
 
                         updateCalculatedResult()
                     },
@@ -110,26 +159,23 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                 ).show()
             }
 
-            // Listener for selecting the end time
             buttonSelectEndTime.setOnClickListener {
-                val calendar = Calendar.getInstance()
-                TimePickerDialog(
-                    requireContext(),
-                    { _, hourOfDay, minute ->
-                        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
-                        calendar.set(Calendar.MINUTE, minute)
-                        endTime = calendar.timeInMillis
-
-                        val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
-                        buttonSelectEndTime.text = formattedTime
-
-                        updateCalculatedResult()
-                    },
-                    calendar.get(Calendar.HOUR_OF_DAY),
-                    calendar.get(Calendar.MINUTE),
-                    true
-                ).show()
+                if (startTime == null || startDate == null) {
+                    showToast(requireContext(), getString(R.string.please_set_start_time_first))
+                } else {
+                    showTimePicker(endTime) { selectedEndTime ->
+                        if (endDate == startDate && selectedEndTime <= startTime!!) {
+                            // אם תאריכים זהים ושעת הסיום קטנה משעת ההתחלה
+                            showToast(requireContext(), getString(R.string.end_time_before_start_time))
+                        } else {
+                            endTime = selectedEndTime
+                            buttonSelectEndTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(endTime!!))
+                            updateCalculatedResult()
+                        }
+                    }
+                }
             }
+
 
             // Listener for finish button
             finishBtn.setOnClickListener {
@@ -158,8 +204,11 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     workSessionViewModel.insertWorkSession(workSession)
 
                     findNavController().navigate(R.id.action_addItemFragment_to_allItemsFragment23)
+                } else {
+                    showToast(requireContext(), getString(R.string.please_fill_all_fields))
                 }
             }
+
         }
 
         return binding.root
@@ -182,47 +231,53 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
 
             val hourlyWage = workSessionViewModel.hourlyWage
             val additionalWages = workSessionViewModel.additionalWages
-            val totalSalary = calculateTotalSalary(
-                startDateTime,
-                endDateTime,
-                hourlyWage,
-                additionalWages
+            val totalSalary = calculateTotalSalary(startDateTime, endDateTime, hourlyWage, additionalWages)
+
+            val totalHours = (endDateTime.time - startDateTime.time) / (1000 * 60 * 60).toDouble()
+            val overtimeHours = maxOf(0.0, totalHours - 8.0)
+
+            val overtimeSalary = if (overtimeHours > 0) {
+                val firstTwoOvertimeHours = min(overtimeHours, 2.0)
+                val additionalOvertimeHours = maxOf(0.0, overtimeHours - 2.0)
+                firstTwoOvertimeHours * hourlyWage * 1.25 + additionalOvertimeHours * hourlyWage * 1.5
+            } else 0.0
+
+            binding.calculatedResultTextView.text = getString(
+                R.string.calculated_result,
+                totalHours, overtimeHours, totalSalary, overtimeSalary
             )
-            binding.calculatedResultTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
+
+            // Show the divider and TextView once the result is calculated
+            binding.calculatedResultTextView.visibility = View.VISIBLE
+            // Assuming the View divider has an ID or using `findViewById`
+            binding.root.findViewById<View>(R.id.divider_id).visibility = View.VISIBLE
         }
     }
 
-    private fun calculateTotalSalary(
-        startDate: Date,
-        endDate: Date,
-        hourlyWage: Double,
-        additionalWages: Double
-    ): Double {
-        val calendar = Calendar.getInstance()
-        calendar.time = startDate
 
-        val totalHours = (endDate.time - startDate.time) / (1000 * 60 * 60).toDouble()
-        var totalSalary = 0.0
 
-        if (calendar.get(Calendar.HOUR_OF_DAY) >= 22 || calendar.get(Calendar.HOUR_OF_DAY) < 6) {
-            val nightHours = totalHours
-            totalSalary += nightHours * hourlyWage * 1.25
-        } else {
-            val normalHours = min(totalHours, 8.0)
-            totalSalary += normalHours * hourlyWage
 
-            if (totalHours > 8) {
-                val overtimeHours = totalHours - 8
-                val firstTwoOvertimeHours = min(overtimeHours, 2.0)
-                val additionalOvertimeHours = maxOf(0.0, overtimeHours - 2)
 
-                totalSalary += firstTwoOvertimeHours * hourlyWage * 1.25
-                totalSalary += additionalOvertimeHours * hourlyWage * 1.5
-            }
+
+    private fun updateShiftTimeButtons() {
+        binding.buttonSelectStartTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(startTime ?: 0L))
+        binding.buttonSelectEndTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(endTime ?: 0L))
+    }
+
+    private fun showTimePicker(initialTime: Long?, onTimeSelected: (Long) -> Unit) {
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = initialTime ?: timeInMillis
         }
-
-        totalSalary += totalHours * additionalWages
-
-        return totalSalary
+        TimePickerDialog(
+            requireContext(),
+            { _, hourOfDay, minute ->
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                calendar.set(Calendar.MINUTE, minute)
+                onTimeSelected(calendar.timeInMillis)
+            },
+            calendar.get(Calendar.HOUR_OF_DAY),
+            calendar.get(Calendar.MINUTE),
+            true
+        ).show()
     }
 }

@@ -38,6 +38,12 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
         )
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        initializeSettingsView()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -135,5 +141,28 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
     private fun formatTimeRange(startTime: Long, endTime: Long): String {
         val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
         return "${formatter.format(startTime)} - ${formatter.format(endTime)}"
+    }
+
+    private fun initializeSettingsView() {
+        // Load saved hourly wage and additional wages
+        val hourlyWage = workSessionViewModel.hourlyWage
+        val additionalWages = workSessionViewModel.additionalWages
+
+        // Display saved wages in the text fields
+        binding.hourlyWageEditText.setText(hourlyWage.toString())
+        binding.additionalWagesEditText.setText(additionalWages.toString())
+
+        // Load saved shift times
+        morningShiftStartTime = workSessionViewModel.morningShiftStartTime
+        morningShiftEndTime = workSessionViewModel.morningShiftEndTime
+        eveningShiftStartTime = workSessionViewModel.eveningShiftStartTime
+        eveningShiftEndTime = workSessionViewModel.eveningShiftEndTime
+        nightShiftStartTime = workSessionViewModel.nightShiftStartTime
+        nightShiftEndTime = workSessionViewModel.nightShiftEndTime
+
+        // Update button texts with saved times
+        binding.buttonSetMorningShift.text = formatTimeRange(morningShiftStartTime!!, morningShiftEndTime!!)
+        binding.buttonSetEveningShift.text = formatTimeRange(eveningShiftStartTime!!, eveningShiftEndTime!!)
+        binding.buttonSetNightShift.text = formatTimeRange(nightShiftStartTime!!, nightShiftEndTime!!)
     }
 }

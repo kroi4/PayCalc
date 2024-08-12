@@ -9,7 +9,15 @@
     android:padding="16dp"
     tools:context="ui.screens.AddItemFragment">
 
-    <!-- Existing Card Views and Other Elements -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/add_shift"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="15dp" />
+
 
     <!-- MaterialCardView for Start of Shift -->
     <com.google.android.material.card.MaterialCardView
@@ -121,11 +129,11 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:maxLines="1"
-                    android:autoSizeTextType="uniform"
-                    android:autoSizeMinTextSize="8sp"
                     android:autoSizeMaxTextSize="16sp"
+                    android:autoSizeMinTextSize="8sp"
                     android:autoSizeStepGranularity="1sp"
+                    android:autoSizeTextType="uniform"
+                    android:maxLines="1"
                     android:text="@string/select_a_time"
                     android:textAppearance="?attr/textAppearanceButton"
                     app:cornerRadius="0dp" />
@@ -147,14 +155,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/morning"
-            app:buttonTint="@color/md_theme_primary" />
+            app:buttonTint="@color/md_theme_primary"
+            android:layout_marginEnd="16dp" /> <!-- מוסיף רווח מימין לכפתור הראשון -->
 
         <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radioAfternoon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/evening"
-            app:buttonTint="@color/md_theme_primary" />
+            app:buttonTint="@color/md_theme_primary"
+            android:layout_marginEnd="16dp" /> <!-- מוסיף רווח מימין לכפתור השני -->
 
         <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/radioNight"
@@ -175,11 +185,13 @@
 
     <!-- Divider line -->
     <View
+        android:id="@+id/divider_id"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@android:color/darker_gray"
         android:layout_marginTop="15dp"
-        android:layout_marginBottom="15dp" />
+        android:layout_marginBottom="15dp"
+        android:visibility="gone" />
 
     <!-- TextView Result -->
     <TextView
@@ -187,12 +199,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/total_hours"
-        android:maxLines="1"
         android:autoSizeTextType="uniform"
         android:autoSizeMinTextSize="16sp"
         android:autoSizeMaxTextSize="18sp"
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
         android:textSize="18sp"
-        android:textAlignment="center"/>
+        android:textAlignment="center"
+        android:visibility="gone" />
 </LinearLayout>

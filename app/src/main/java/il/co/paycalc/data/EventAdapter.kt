@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import il.co.paycalc.R
 import il.co.paycalc.data.model.WorkSession
 import il.co.paycalc.databinding.ItemLayoutBinding
+import il.co.paycalc.utils.calculateTotalSalary
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -211,43 +212,4 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
     // פונקציה זו צריכה להיות במחלקה EventAdapter ולא בתוך ItemViewHolder
     override fun getItemCount() = work.size
 
-    // פונקציה לחישוב השכר הכולל תוך התחשבות בשעות נוספות ומשמרות לילה
-    private fun calculateTotalSalary(
-        startDate: Date,
-        endDate: Date,
-        hourlyWage: Double,
-        additionalWages: Double
-    ): Double {
-        val calendar = Calendar.getInstance()
-        calendar.time = startDate
-
-        // חישוב של סך השעות שהמשמרת נמשכה
-        val totalHours = (endDate.time - startDate.time) / (1000 * 60 * 60).toDouble()
-        var totalSalary = 0.0
-
-        // חישוב שכר עבור משמרת לילה
-        if (calendar.get(Calendar.HOUR_OF_DAY) >= 22 || calendar.get(Calendar.HOUR_OF_DAY) < 6) {
-            val nightHours = totalHours
-            totalSalary += nightHours * hourlyWage * 1.25
-        } else {
-            // חישוב השכר עבור השעות הראשונות עד 8 שעות ביום עבודה רגיל
-            val normalHours = min(totalHours, 8.0)
-            totalSalary += normalHours * hourlyWage
-
-            // חישוב שעות נוספות
-            if (totalHours > 8) {
-                val overtimeHours = totalHours - 8
-                val firstTwoOvertimeHours = min(overtimeHours, 2.0)
-                val additionalOvertimeHours = maxOf(0.0, overtimeHours - 2)
-
-                totalSalary += firstTwoOvertimeHours * hourlyWage * 1.25
-                totalSalary += additionalOvertimeHours * hourlyWage * 1.5
-            }
-        }
-
-        // הוספת תוספות השכר לאחר חישוב השכר הנוסף
-        totalSalary += totalHours * additionalWages
-
-        return totalSalary
-    }
 }
