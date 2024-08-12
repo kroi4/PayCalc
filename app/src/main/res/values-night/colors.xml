@@ -3,7 +3,7 @@
     <color name="text_color_on_dark">#FFFFFF</color>
     <color name="text_color_on_light">#000000</color>
 
-    <color name="md_theme_primary">#494960</color>
+    <color name="md_theme_primary">#C99393B1</color>
     <color name="md_theme_onPrimary">#27286C</color>
     <color name="md_theme_primaryContainer">#1D1E62</color>
     <color name="md_theme_onPrimaryContainer">#ABACF9</color>

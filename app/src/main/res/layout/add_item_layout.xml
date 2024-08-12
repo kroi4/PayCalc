@@ -1,52 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="ui.screens.AddItemFragment"
-    android:padding="16dp">
+    android:padding="16dp"
+    tools:context="ui.screens.AddItemFragment">
 
-    <LinearLayout
+    <!-- Existing Card Views and Other Elements -->
+
+    <!-- MaterialCardView for Start of Shift -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/start_of_shift"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/buttonSelectStartDate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:autoSizeTextType="uniform"
+                    android:autoSizeMinTextSize="8sp"
+                    android:autoSizeMaxTextSize="16sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/select_a_date"
+                    android:textAppearance="?attr/textAppearanceButton"
+                    app:cornerRadius="0dp" />
+
+                <Button
+                    android:id="@+id/buttonSelectStartTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:autoSizeTextType="uniform"
+                    android:autoSizeMinTextSize="8sp"
+                    android:autoSizeMaxTextSize="16sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:text="@string/select_a_time"
+                    android:textAppearance="?attr/textAppearanceButton"
+                    app:cornerRadius="0dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- MaterialCardView for End of Shift -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/end_of_shift"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/buttonSelectEndDate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:autoSizeTextType="uniform"
+                    android:autoSizeMinTextSize="8sp"
+                    android:autoSizeMaxTextSize="16sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/select_a_date"
+                    android:textAppearance="?attr/textAppearanceButton"
+                    app:cornerRadius="0dp" />
+
+                <Button
+                    android:id="@+id/buttonSelectEndTime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:autoSizeTextType="uniform"
+                    android:autoSizeMinTextSize="8sp"
+                    android:autoSizeMaxTextSize="16sp"
+                    android:autoSizeStepGranularity="1sp"
+                    android:text="@string/select_a_time"
+                    android:textAppearance="?attr/textAppearanceButton"
+                    app:cornerRadius="0dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- RadioGroup with MaterialRadioButton -->
+    <RadioGroup
+        android:id="@+id/radioGroupShiftType"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingBottom="16dp"
-        >
+        android:layout_marginTop="16dp"
+        android:gravity="center">
 
-        <Button
-            android:id="@+id/buttonSelectStartDateTime"
-            android:layout_width="0dp"
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radioMorning"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:maxLines="1"
-            android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="10sp"
-            android:autoSizeMaxTextSize="16sp"
+            android:text="@string/morning"
+            app:buttonTint="@color/md_theme_primary" />
 
-            android:text="@string/select_start_date_and_time"
-            android:padding="8dp" />
-
-        <View
-            android:layout_width="16dp"
-            android:layout_height="match_parent" />
-
-
-        <Button
-            android:id="@+id/buttonSelectEndDateTime"
-            android:layout_width="0dp"
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radioAfternoon"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:maxLines="1"
-            android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="10sp"
-            android:autoSizeMaxTextSize="16sp"
-            android:text="@string/select_end_date_and_time"
-            android:padding="8dp" />
-    </LinearLayout>
+            android:text="@string/evening"
+            app:buttonTint="@color/md_theme_primary" />
 
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/radioNight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/night"
+            app:buttonTint="@color/md_theme_primary" />
+    </RadioGroup>
+
+    <!-- Button finish -->
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/finish"
+        android:id="@+id/finish_btn"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"/>
+
+    <!-- Divider line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="15dp" />
+
+    <!-- TextView Result -->
     <TextView
         android:id="@+id/calculatedResultTextView"
         android:layout_width="match_parent"
@@ -60,13 +195,4 @@
         android:gravity="center_horizontal"
         android:textSize="18sp"
         android:textAlignment="center"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/finish"
-        android:id="@+id/finish_btn"
-        android:layout_gravity="center"
-        android:layout_marginTop="10dp"/>
-
 </LinearLayout>

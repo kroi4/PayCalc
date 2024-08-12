@@ -27,7 +27,9 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
 
     private var binding: AddItemLayoutBinding by autoCleared()
     private var startDate: Long? = null
+    private var startTime: Long? = null
     private var endDate: Long? = null
+    private var endTime: Long? = null
 
     private val workSessionViewModel: WorkSessionViewModel by viewModels {
         WorkSessionViewModelFactory(
@@ -47,36 +49,19 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
 
         binding.apply {
 
-            buttonSelectStartDateTime.setOnClickListener {
+            // Listener for selecting the start date
+            buttonSelectStartDate.setOnClickListener {
                 val calendar = Calendar.getInstance()
                 DatePickerDialog(
                     requireContext(),
                     { _, year, monthOfYear, dayOfMonth ->
-                        TimePickerDialog(
-                            requireContext(),
-                            { _, hourOfDay, minute ->
-                                calendar.set(year, monthOfYear, dayOfMonth, hourOfDay, minute)
-                                startDate = calendar.timeInMillis
+                        calendar.set(year, monthOfYear, dayOfMonth)
+                        startDate = calendar.timeInMillis
 
-                                val formattedDate = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(calendar.time)
-                                buttonSelectStartDateTime.text = formattedDate
+                        val formattedDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
+                        buttonSelectStartDate.text = formattedDate
 
-                                if (startDate != null && endDate != null) {
-                                    val hourlyWage = workSessionViewModel.hourlyWage
-                                    val additionalWages = workSessionViewModel.additionalWages
-                                    val totalSalary = calculateTotalSalary(
-                                        Date(startDate!!),
-                                        Date(endDate!!),
-                                        hourlyWage,
-                                        additionalWages
-                                    )
-                                    binding.calculatedResultTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
-                                }
-                            },
-                            calendar.get(Calendar.HOUR_OF_DAY),
-                            calendar.get(Calendar.MINUTE),
-                            true
-                        ).show()
+                        updateCalculatedResult()
                     },
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
@@ -84,36 +69,40 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                 ).show()
             }
 
-            buttonSelectEndDateTime.setOnClickListener {
+            // Listener for selecting the start time
+            buttonSelectStartTime.setOnClickListener {
+                val calendar = Calendar.getInstance()
+                TimePickerDialog(
+                    requireContext(),
+                    { _, hourOfDay, minute ->
+                        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                        calendar.set(Calendar.MINUTE, minute)
+                        startTime = calendar.timeInMillis
+
+                        val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
+                        buttonSelectStartTime.text = formattedTime
+
+                        updateCalculatedResult()
+                    },
+                    calendar.get(Calendar.HOUR_OF_DAY),
+                    calendar.get(Calendar.MINUTE),
+                    true
+                ).show()
+            }
+
+            // Listener for selecting the end date
+            buttonSelectEndDate.setOnClickListener {
                 val calendar = Calendar.getInstance()
                 DatePickerDialog(
                     requireContext(),
                     { _, year, monthOfYear, dayOfMonth ->
-                        TimePickerDialog(
-                            requireContext(),
-                            { _, hourOfDay, minute ->
-                                calendar.set(year, monthOfYear, dayOfMonth, hourOfDay, minute)
-                                endDate = calendar.timeInMillis
+                        calendar.set(year, monthOfYear, dayOfMonth)
+                        endDate = calendar.timeInMillis
 
-                                val formattedDate = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(calendar.time)
-                                buttonSelectEndDateTime.text = formattedDate
+                        val formattedDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
+                        buttonSelectEndDate.text = formattedDate
 
-                                if (startDate != null && endDate != null) {
-                                    val hourlyWage = workSessionViewModel.hourlyWage
-                                    val additionalWages = workSessionViewModel.additionalWages
-                                    val totalSalary = calculateTotalSalary(
-                                        Date(startDate!!),
-                                        Date(endDate!!),
-                                        hourlyWage,
-                                        additionalWages
-                                    )
-                                    binding.calculatedResultTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
-                                }
-                            },
-                            calendar.get(Calendar.HOUR_OF_DAY),
-                            calendar.get(Calendar.MINUTE),
-                            true
-                        ).show()
+                        updateCalculatedResult()
                     },
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
@@ -121,21 +110,46 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                 ).show()
             }
 
+            // Listener for selecting the end time
+            buttonSelectEndTime.setOnClickListener {
+                val calendar = Calendar.getInstance()
+                TimePickerDialog(
+                    requireContext(),
+                    { _, hourOfDay, minute ->
+                        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                        calendar.set(Calendar.MINUTE, minute)
+                        endTime = calendar.timeInMillis
+
+                        val formattedTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(calendar.time)
+                        buttonSelectEndTime.text = formattedTime
+
+                        updateCalculatedResult()
+                    },
+                    calendar.get(Calendar.HOUR_OF_DAY),
+                    calendar.get(Calendar.MINUTE),
+                    true
+                ).show()
+            }
+
+            // Listener for finish button
             finishBtn.setOnClickListener {
-                if (startDate != null && endDate != null) {
+                if (startDate != null && startTime != null && endDate != null && endTime != null) {
+                    val startDateTime = mergeDateAndTime(startDate!!, startTime!!)
+                    val endDateTime = mergeDateAndTime(endDate!!, endTime!!)
+
                     val hourlyWage = workSessionViewModel.hourlyWage
                     val additionalWages = workSessionViewModel.additionalWages
 
                     val totalSalary = calculateTotalSalary(
-                        Date(startDate!!),
-                        Date(endDate!!),
+                        startDateTime,
+                        endDateTime,
                         hourlyWage,
                         additionalWages
                     )
 
                     val workSession = WorkSession(
-                        startDateTime = Date(startDate!!),
-                        endDateTime = Date(endDate!!),
+                        startDateTime = startDateTime,
+                        endDateTime = endDateTime,
                         hourlyWage = hourlyWage,
                         additionalWages = additionalWages,
                         totalSalary = totalSalary
@@ -149,6 +163,33 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
         }
 
         return binding.root
+    }
+
+    private fun mergeDateAndTime(dateMillis: Long, timeMillis: Long): Date {
+        val dateCalendar = Calendar.getInstance().apply { timeInMillis = dateMillis }
+        val timeCalendar = Calendar.getInstance().apply { timeInMillis = timeMillis }
+
+        dateCalendar.set(Calendar.HOUR_OF_DAY, timeCalendar.get(Calendar.HOUR_OF_DAY))
+        dateCalendar.set(Calendar.MINUTE, timeCalendar.get(Calendar.MINUTE))
+
+        return dateCalendar.time
+    }
+
+    private fun updateCalculatedResult() {
+        if (startDate != null && startTime != null && endDate != null && endTime != null) {
+            val startDateTime = mergeDateAndTime(startDate!!, startTime!!)
+            val endDateTime = mergeDateAndTime(endDate!!, endTime!!)
+
+            val hourlyWage = workSessionViewModel.hourlyWage
+            val additionalWages = workSessionViewModel.additionalWages
+            val totalSalary = calculateTotalSalary(
+                startDateTime,
+                endDateTime,
+                hourlyWage,
+                additionalWages
+            )
+            binding.calculatedResultTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
+        }
     }
 
     private fun calculateTotalSalary(

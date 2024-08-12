@@ -27,6 +27,43 @@ class WorkSessionViewModel(application: Application, private val repository: Wor
             sharedPreferences.edit().putFloat("additionalWages", value.toFloat()).apply()
         }
 
+    // משתנים עבור שעות המשמרות
+    var morningShiftStartTime: Long
+        get() = sharedPreferences.getLong("morningShiftStartTime", 0L)
+        private set(value) {
+            sharedPreferences.edit().putLong("morningShiftStartTime", value).apply()
+        }
+
+    var morningShiftEndTime: Long
+        get() = sharedPreferences.getLong("morningShiftEndTime", 0L)
+        private set(value) {
+            sharedPreferences.edit().putLong("morningShiftEndTime", value).apply()
+        }
+
+    var eveningShiftStartTime: Long
+        get() = sharedPreferences.getLong("eveningShiftStartTime", 0L)
+        private set(value) {
+            sharedPreferences.edit().putLong("eveningShiftStartTime", value).apply()
+        }
+
+    var eveningShiftEndTime: Long
+        get() = sharedPreferences.getLong("eveningShiftEndTime", 0L)
+        private set(value) {
+            sharedPreferences.edit().putLong("eveningShiftEndTime", value).apply()
+        }
+
+    var nightShiftStartTime: Long
+        get() = sharedPreferences.getLong("nightShiftStartTime", 0L)
+        private set(value) {
+            sharedPreferences.edit().putLong("nightShiftStartTime", value).apply()
+        }
+
+    var nightShiftEndTime: Long
+        get() = sharedPreferences.getLong("nightShiftEndTime", 0L)
+        private set(value) {
+            sharedPreferences.edit().putLong("nightShiftEndTime", value).apply()
+        }
+
     private val _workSessions = MutableLiveData<List<WorkSession>>()
     val workSessions: LiveData<List<WorkSession>> get() = _workSessions
 
@@ -55,4 +92,17 @@ class WorkSessionViewModel(application: Application, private val repository: Wor
         this.additionalWages = additionalWages
     }
 
+    // פונקציה לעדכון שעות המשמרות
+    fun updateShiftTimes(
+        morningStart: Long, morningEnd: Long,
+        eveningStart: Long, eveningEnd: Long,
+        nightStart: Long, nightEnd: Long
+    ) {
+        this.morningShiftStartTime = morningStart
+        this.morningShiftEndTime = morningEnd
+        this.eveningShiftStartTime = eveningStart
+        this.eveningShiftEndTime = eveningEnd
+        this.nightShiftStartTime = nightStart
+        this.nightShiftEndTime = nightEnd
+    }
 }

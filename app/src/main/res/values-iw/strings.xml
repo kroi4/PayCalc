@@ -3,11 +3,19 @@
     <string name="app_name">PayCalc</string>
     <string name="select_start_date_and_time">בחר תאריך ושעת התחלה</string>
     <string name="select_end_date_and_time">בחר תאריך ושעת סיום</string>
-    <string name="finish">סיים</string>
+    <string name="finish">סיום</string>
     <string name="total_hours">סה\"כ שעות</string>
     <string name="save">שמור</string>
     <string name="basic_salary">שכר בסיס</string>
     <string name="additional_salary">תוספת שכר</string>
     <string name="settings">הגדרות</string>
     <string name="hours">שעות</string>
+    <string name="start_of_shift">תחילת משמרת</string>
+    <string name="end_of_shift">סיום משמרת</string>
+    <string name="select_a_time">בחר שעה</string>
+    <string name="select_a_date">בחר תאריך</string>
+    <string name="night">לילה</string>
+    <string name="evening">ערב</string>
+    <string name="morning">בוקר</string>
+    <string name="set_times">הגדר זמנים</string>
 </resources>
