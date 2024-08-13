@@ -24,4 +24,7 @@
     <string name="please_fill_all_fields">אנא מלא את כל השדות.</string>
     <string name="please_set_start_time_first">אנא הגדר תחילה את שעת ההתחלה.</string>
     <string name="add_shift">הוספת משמרת</string>
+    <string name="start_time">שעת התחלה</string>
+    <string name="end_time">שעת סיום</string>
+    <string name="rest_times">זמני מנוחה</string>
 </resources>

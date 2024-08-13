@@ -1,5 +1,6 @@
 package il.co.paycalc.data
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -44,7 +45,9 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
         fun bind(work: WorkSession) {
             val dateFormatDayMonthYear = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
             val dateFormatDayMonth = SimpleDateFormat("dd/MM", Locale.getDefault())
-            val dateFormatDayMonthYearWithDash = SimpleDateFormat("dd/MM/yy", Locale.getDefault())
+            val sharedPreferences = itemView.context.getSharedPreferences("your_preference_file_key", Context.MODE_PRIVATE)
+            val restStartHour = sharedPreferences.getInt("rest_start_hour_key", 16) // ערך ברירת מחדל 16
+            val restEndHour = sharedPreferences.getInt("rest_end_hour_key", 4) // ערך ברירת מחדל 4
 
             // מיפוי ידני להסרת "יום" והמרה באמצעות מחרוזות משאבים
             val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
@@ -101,7 +104,8 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
                 work.startDateTime,
                 work.endDateTime,
                 work.hourlyWage,
-                work.additionalWages
+                work.additionalWages,
+                restStartHour,
             )
             binding.salaryTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
 

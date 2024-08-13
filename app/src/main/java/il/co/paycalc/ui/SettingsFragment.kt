@@ -1,6 +1,7 @@
 package il.co.paycalc.ui.screens
 
 import android.app.TimePickerDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,6 +29,8 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
     private var eveningShiftEndTime: Long? = null
     private var nightShiftStartTime: Long? = null
     private var nightShiftEndTime: Long? = null
+    private var restDayStartTime: Long? = null
+    private var restDayEndTime: Long? = null
 
     private val workSessionViewModel: WorkSessionViewModel by viewModels {
         WorkSessionViewModelFactory(
@@ -56,7 +59,6 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                 showTimeRangePicker { startTime, endTime ->
                     morningShiftStartTime = startTime
                     morningShiftEndTime = endTime
-                    // Update button text with selected time range
                     binding.buttonSetMorningShift.text = formatTimeRange(startTime, endTime)
                 }
             }
@@ -65,7 +67,6 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                 showTimeRangePicker { startTime, endTime ->
                     eveningShiftStartTime = startTime
                     eveningShiftEndTime = endTime
-                    // Update button text with selected time range
                     binding.buttonSetEveningShift.text = formatTimeRange(startTime, endTime)
                 }
             }
@@ -74,8 +75,26 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                 showTimeRangePicker { startTime, endTime ->
                     nightShiftStartTime = startTime
                     nightShiftEndTime = endTime
-                    // Update button text with selected time range
                     binding.buttonSetNightShift.text = formatTimeRange(startTime, endTime)
+                }
+            }
+
+            // Rest Day Start Time Selection
+            buttonSetRestDayStart.setOnClickListener {
+                showTimePicker { startTime ->
+                    restDayStartTime = startTime
+                    restDayEndTime = startTime + 36 * 60 * 60 * 1000 // 36 hours later
+                    binding.buttonSetRestDayStart.text = formatTime(restDayStartTime!!)
+                    binding.buttonSetRestDayEnd.text = formatTime(restDayEndTime!!)
+                    buttonSetRestDayEnd.isEnabled = true
+                }
+            }
+
+            // Rest Day End Time Selection
+            buttonSetRestDayEnd.setOnClickListener {
+                showTimePicker { endTime ->
+                    restDayEndTime = endTime
+                    binding.buttonSetRestDayEnd.text = formatTime(restDayEndTime!!)
                 }
             }
 
@@ -98,6 +117,16 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                     )
                 }
 
+                // Save rest day start and end times
+                if (restDayStartTime != null && restDayEndTime != null) {
+                    val sharedPreferences = requireActivity().getSharedPreferences("shift_prefs", Context.MODE_PRIVATE)
+                    sharedPreferences.edit().apply {
+                        putLong("rest_day_start_time", restDayStartTime!!)
+                        putLong("rest_day_end_time", restDayEndTime!!)
+                        apply()
+                    }
+                }
+
                 // Navigate back to the previous screen
                 findNavController().navigate(R.id.action_settingsFragment_to_allItemsFragment2)
             }
@@ -109,7 +138,6 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
     private fun showTimeRangePicker(onTimeRangeSelected: (Long, Long) -> Unit) {
         val calendar = Calendar.getInstance()
 
-        // Select start time
         TimePickerDialog(
             requireContext(),
             { _, startHour, startMinute ->
@@ -117,7 +145,6 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                 calendar.set(Calendar.MINUTE, startMinute)
                 val startTime = calendar.timeInMillis
 
-                // Select end time
                 TimePickerDialog(
                     requireContext(),
                     { _, endHour, endMinute ->
@@ -138,12 +165,34 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
         ).show()
     }
 
+    private fun showTimePicker(onTimeSelected: (Long) -> Unit) {
+        val calendar = Calendar.getInstance()
+        TimePickerDialog(
+            requireContext(),
+            { _, hourOfDay, minute ->
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                calendar.set(Calendar.MINUTE, minute)
+                onTimeSelected(calendar.timeInMillis)
+            },
+            calendar.get(Calendar.HOUR_OF_DAY),
+            calendar.get(Calendar.MINUTE),
+            true
+        ).show()
+    }
+
+    private fun formatTime(timeInMillis: Long): String {
+        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        return formatter.format(timeInMillis)
+    }
+
     private fun formatTimeRange(startTime: Long, endTime: Long): String {
         val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
         return "${formatter.format(startTime)} - ${formatter.format(endTime)}"
     }
 
     private fun initializeSettingsView() {
+        val sharedPreferences = requireActivity().getSharedPreferences("shift_prefs", Context.MODE_PRIVATE)
+
         // Load saved hourly wage and additional wages
         val hourlyWage = workSessionViewModel.hourlyWage
         val additionalWages = workSessionViewModel.additionalWages
@@ -164,5 +213,15 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
         binding.buttonSetMorningShift.text = formatTimeRange(morningShiftStartTime!!, morningShiftEndTime!!)
         binding.buttonSetEveningShift.text = formatTimeRange(eveningShiftStartTime!!, eveningShiftEndTime!!)
         binding.buttonSetNightShift.text = formatTimeRange(nightShiftStartTime!!, nightShiftEndTime!!)
+
+        // Load rest day times from SharedPreferences
+        restDayStartTime = sharedPreferences.getLong("rest_day_start_time", 0L)
+        restDayEndTime = sharedPreferences.getLong("rest_day_end_time", 0L)
+
+        if (restDayStartTime != 0L && restDayEndTime != 0L) {
+            binding.buttonSetRestDayStart.text = formatTime(restDayStartTime!!)
+            binding.buttonSetRestDayEnd.text = formatTime(restDayEndTime!!)
+            binding.buttonSetRestDayEnd.isEnabled = true
+        }
     }
 }

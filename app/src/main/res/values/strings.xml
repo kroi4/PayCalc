@@ -24,4 +24,7 @@
     <string name="calculated_result">Total work hours: %.2f\n(Overtime hours: %.2f)\n\nTotal salary: %.2f₪\n(Overtime salary: %.2f₪)</string>
     <string name="please_fill_all_fields">Please fill in all fields.</string>
     <string name="please_set_start_time_first">please set start time first.</string>
+    <string name="start_time">Start Time</string>
+    <string name="end_time">End Time</string>
+    <string name="rest_times">Rest Time</string>
 </resources>
