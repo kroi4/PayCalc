@@ -195,12 +195,14 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     val additionalWages = workSessionViewModel.additionalWages
 
                     val totalSalary = calculateTotalSalary(
+                        requireContext(),
                         startDateTime,
                         endDateTime,
                         hourlyWage,
                         additionalWages,
                         restStartHour ?: 16,
                     )
+
 
                     val workSession = WorkSession(
                         startDateTime = startDateTime,
@@ -242,7 +244,7 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
             val additionalWages = workSessionViewModel.additionalWages
             val restStartHour = this.restStartHour ?: 16
 
-            val totalSalary = calculateTotalSalary(startDateTime, endDateTime, hourlyWage, additionalWages, restStartHour)
+            val totalSalary = calculateTotalSalary(requireContext(),startDateTime, endDateTime, hourlyWage, additionalWages, restStartHour)
 
             val totalHours = (endDateTime.time - startDateTime.time) / (1000 * 60 * 60).toDouble()
             val overtimeHours = maxOf(0.0, totalHours - 8.0)

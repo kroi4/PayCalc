@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import il.co.paycalc.R
@@ -100,12 +101,15 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
 
             // שכר
             val totalSalary = calculateTotalSalary(
+                itemView.context,  // שינוי מ-requireContext() ל-itemView.context
                 work.startDateTime,
                 work.endDateTime,
                 work.hourlyWage,
                 work.additionalWages,
-                restStartHour,
+                restStartHour
             )
+
+
             binding.salaryTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
 
 
