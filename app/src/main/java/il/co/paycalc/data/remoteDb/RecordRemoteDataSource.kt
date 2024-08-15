@@ -1,10 +1,10 @@
 package il.co.paycalc.data.remoteDb
 
-import il.co.paycalc.data.api.FlightsApi
+import il.co.paycalc.data.api.HolidayApi
 
 class RecordRemoteDataSource(
-    private val apiService: FlightsApi
+    private val apiService: HolidayApi
 ) : BaseDataSource() {
 
-    suspend fun getRecords(resourceId: String) = getResult { apiService.getFlights(resourceId) }
+    suspend fun getRecords(resourceId: String) = getResult { apiService.getHoliday(resourceId) }
 }

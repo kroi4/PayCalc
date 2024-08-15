@@ -2,11 +2,13 @@ package il.co.paycalc.ui
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import il.co.paycalc.data.model.holiday.Holiday
 import il.co.paycalc.data.repository.RecordRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Date
 
 class RecordViewModel(private val recordRepository: RecordRepository): ViewModel() {
 
@@ -17,6 +19,11 @@ class RecordViewModel(private val recordRepository: RecordRepository): ViewModel
             recordRepository.getRecords()
         }
     }
+
+
+//    fun checkIfHoliday(date: Date): LiveData<Boolean> = liveData {
+//        emit(recordRepository.isHoliday(date))
+//    }
 
     fun getDepartures() {
         viewModelScope.launch(Dispatchers.IO) {

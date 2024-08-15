@@ -5,10 +5,10 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface FlightsApi {
+interface HolidayApi {
 
     @GET("action/datastore_search")
-    suspend fun getFlights(
+    suspend fun getHoliday(
         @Query("resource_id") resourceId:String,
     ): Response<Holiday>
 

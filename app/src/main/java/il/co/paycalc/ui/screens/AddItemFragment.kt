@@ -6,29 +6,29 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import il.co.paycalc.R
 import il.co.paycalc.data.localDb.EventDatabase
+import il.co.paycalc.data.localDb.RecordDao
+import il.co.paycalc.data.localDb.RecordDatabase
 import il.co.paycalc.data.model.WorkSession
 import il.co.paycalc.data.repository.WorkSessionRepository
 import il.co.paycalc.databinding.AddItemLayoutBinding
-import il.co.paycalc.ui.RecordViewModel
 import il.co.paycalc.ui.viewmodel.WorkSessionViewModel
 import il.co.paycalc.ui.viewmodel.WorkSessionViewModelFactory
 import il.co.paycalc.utils.autoCleared
 import il.co.paycalc.utils.calculateTotalSalary
 import il.co.paycalc.utils.showToast
-import il.co.skystar.utils.Loading
-import il.co.skystar.utils.Success
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.min
+
 
 class AddItemFragment : Fragment(R.layout.add_item_layout) {
 
@@ -39,6 +39,8 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
     private var endDate: Long? = null
     private var endTime: Long? = null
     private var restStartHour: Int? = null
+
+    private lateinit var recordDao: RecordDao // הגדרה של recordDao
 
     private val workSessionViewModel: WorkSessionViewModel by viewModels {
         WorkSessionViewModelFactory(
@@ -56,7 +58,11 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
     ): View? {
         binding = AddItemLayoutBinding.inflate(layoutInflater)
 
-
+        // הגדרה של recordDao
+        val database = RecordDatabase.getDatabase(requireContext())
+        if (database != null) {
+            recordDao = database.recordDao()
+        }
 
         // Disable the end time button initially
         binding.buttonSelectEndTime.isEnabled = false
@@ -66,8 +72,10 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
         endDate = calendar.timeInMillis
 
         // Set default dates in the required format
-        binding.buttonSelectStartDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(calendar.time)
-        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(calendar.time)
+        binding.buttonSelectStartDate.text =
+            SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(calendar.time)
+        binding.buttonSelectEndDate.text =
+            SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(calendar.time)
 
         binding.apply {
             radioGroupShiftType.setOnCheckedChangeListener { _, checkedId ->
@@ -77,20 +85,25 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                         startTime = workSessionViewModel.morningShiftStartTime
                         endTime = workSessionViewModel.morningShiftEndTime
                         endDate = startDate // תאריך סיום זהה לתאריך התחלה
-                        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
+                        binding.buttonSelectEndDate.text =
+                            SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
                     }
+
                     R.id.radioAfternoon -> {
                         startTime = workSessionViewModel.eveningShiftStartTime
                         endTime = workSessionViewModel.eveningShiftEndTime
                         endDate = startDate // תאריך סיום זהה לתאריך התחלה
-                        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
+                        binding.buttonSelectEndDate.text =
+                            SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
                     }
+
                     R.id.radioNight -> {
                         startTime = workSessionViewModel.nightShiftStartTime
                         endTime = workSessionViewModel.nightShiftEndTime
                         calendar.add(Calendar.DATE, 1) // הוספת יום אחד לתאריך הסיום
                         endDate = calendar.timeInMillis
-                        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
+                        binding.buttonSelectEndDate.text =
+                            SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
                     }
                 }
 
@@ -113,7 +126,8 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     { _, year, monthOfYear, dayOfMonth ->
                         calendar.set(year, monthOfYear, dayOfMonth)
                         startDate = calendar.timeInMillis
-                        binding.buttonSelectStartDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(calendar.time)
+                        binding.buttonSelectStartDate.text =
+                            SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(calendar.time)
 
                         // העתקת תאריך התחלה לתאריך סיום
                         if (binding.radioGroupShiftType.checkedRadioButtonId != R.id.radioNight) {
@@ -123,7 +137,8 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                             calendar.add(Calendar.DATE, 1)
                             endDate = calendar.timeInMillis
                         }
-                        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
+                        binding.buttonSelectEndDate.text =
+                            SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
 
                         // הפעלת כפתור בחירת שעת סיום מאחר ותאריך התחלה נבחר
                         binding.buttonSelectEndTime.isEnabled = true
@@ -139,7 +154,8 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
             buttonSelectStartTime.setOnClickListener {
                 showTimePicker(startTime) { time ->
                     startTime = time
-                    binding.buttonSelectStartTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
+                    binding.buttonSelectStartTime.text =
+                        SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
 
                     // Enable the end time button when start time is selected
                     binding.buttonSelectEndTime.isEnabled = true
@@ -162,10 +178,14 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
 
                         if (selectedEndDate >= startDate!!) {
                             endDate = selectedEndDate
-                            binding.buttonSelectEndDate.text = SimpleDateFormat("EEEE, d MMM yyyy", Locale("he")).format(endDate)
+                            binding.buttonSelectEndDate.text =
+                                SimpleDateFormat("EEEE, d MMM yyyy", Locale("he")).format(endDate)
                         } else {
                             // הצגת הודעה למשתמש אם תאריך הסיום קטן מתאריך ההתחלה
-                            showToast(requireContext(), getString(R.string.end_date_before_start_date))
+                            showToast(
+                                requireContext(),
+                                getString(R.string.end_date_before_start_date)
+                            )
                         }
 
                         updateCalculatedResult()
@@ -183,10 +203,16 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     showTimePicker(endTime) { selectedEndTime ->
                         if (endDate == startDate && selectedEndTime <= startTime!!) {
                             // אם תאריכים זהים ושעת הסיום קטנה משעת ההתחלה
-                            showToast(requireContext(), getString(R.string.end_time_before_start_time))
+                            showToast(
+                                requireContext(),
+                                getString(R.string.end_time_before_start_time)
+                            )
                         } else {
                             endTime = selectedEndTime
-                            buttonSelectEndTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(endTime!!))
+                            buttonSelectEndTime.text = SimpleDateFormat(
+                                "HH:mm",
+                                Locale.getDefault()
+                            ).format(Date(endTime!!))
                             updateCalculatedResult()
                         }
                     }
@@ -202,26 +228,28 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     val hourlyWage = workSessionViewModel.hourlyWage
                     val additionalWages = workSessionViewModel.additionalWages
 
-                    val totalSalary = calculateTotalSalary(
-                        startDateTime,
-                        endDateTime,
-                        hourlyWage,
-                        additionalWages,
-                        restStartHour ?: 16,
-                    )
+                    lifecycleScope.launch {
+                        val totalSalary = calculateTotalSalary(
+                            startDateTime,
+                            endDateTime,
+                            hourlyWage,
+                            additionalWages,
+                            restStartHour ?: 16,
+                            recordDao // כאן מעבירים את ה-recordDao
+                        )
 
+                        val workSession = WorkSession(
+                            startDateTime = startDateTime,
+                            endDateTime = endDateTime,
+                            hourlyWage = hourlyWage,
+                            additionalWages = additionalWages,
+                            totalSalary = totalSalary
+                        )
 
-                    val workSession = WorkSession(
-                        startDateTime = startDateTime,
-                        endDateTime = endDateTime,
-                        hourlyWage = hourlyWage,
-                        additionalWages = additionalWages,
-                        totalSalary = totalSalary
-                    )
+                        workSessionViewModel.insertWorkSession(workSession)
 
-                    workSessionViewModel.insertWorkSession(workSession)
-
-                    findNavController().navigate(R.id.action_addItemFragment_to_allItemsFragment23)
+                        findNavController().navigate(R.id.action_addItemFragment_to_allItemsFragment23)
+                    }
                 } else {
                     showToast(requireContext(), getString(R.string.please_fill_all_fields))
                 }
@@ -251,31 +279,42 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
             val additionalWages = workSessionViewModel.additionalWages
             val restStartHour = this.restStartHour ?: 16
 
-            val totalSalary = calculateTotalSalary(startDateTime, endDateTime, hourlyWage, additionalWages, restStartHour)
+            lifecycleScope.launch {
+                val totalSalary = calculateTotalSalary(
+                    startDateTime,
+                    endDateTime,
+                    hourlyWage,
+                    additionalWages,
+                    restStartHour,
+                    recordDao // כאן
+                )
 
-            val totalHours = (endDateTime.time - startDateTime.time) / (1000 * 60 * 60).toDouble()
-            val overtimeHours = maxOf(0.0, totalHours - 8.0)
+                val totalHours = (endDateTime.time - startDateTime.time) / (1000 * 60 * 60).toDouble()
+                val overtimeHours = maxOf(0.0, totalHours - 8.0)
 
-            val overtimeSalary = if (overtimeHours > 0) {
-                val firstTwoOvertimeHours = min(overtimeHours, 2.0)
-                val additionalOvertimeHours = maxOf(0.0, overtimeHours - 2.0)
-                firstTwoOvertimeHours * hourlyWage * 1.25 + additionalOvertimeHours * hourlyWage * 1.5
-            } else 0.0
+                val overtimeSalary = if (overtimeHours > 0) {
+                    val firstTwoOvertimeHours = min(overtimeHours, 2.0)
+                    val additionalOvertimeHours = maxOf(0.0, overtimeHours - 2.0)
+                    firstTwoOvertimeHours * hourlyWage * 1.25 + additionalOvertimeHours * hourlyWage * 1.5
+                } else 0.0
 
-            binding.calculatedResultTextView.text = getString(
-                R.string.calculated_result,
-                totalHours, overtimeHours, totalSalary, overtimeSalary
-            )
+                binding.calculatedResultTextView.text = getString(
+                    R.string.calculated_result,
+                    totalHours, overtimeHours, totalSalary, overtimeSalary
+                )
 
-            // Show the divider and TextView once the result is calculated
-            binding.calculatedResultTextView.visibility = View.VISIBLE
-            binding.dividerId.visibility = View.VISIBLE
+                // Show the divider and TextView once the result is calculated
+                binding.calculatedResultTextView.visibility = View.VISIBLE
+                binding.dividerId.visibility = View.VISIBLE
+            }
         }
     }
 
     private fun updateShiftTimeButtons() {
-        binding.buttonSelectStartTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(startTime ?: 0L))
-        binding.buttonSelectEndTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(endTime ?: 0L))
+        binding.buttonSelectStartTime.text =
+            SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(startTime ?: 0L))
+        binding.buttonSelectEndTime.text =
+            SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(endTime ?: 0L))
     }
 
     private fun showTimePicker(initialTime: Long?, onTimeSelected: (Long) -> Unit) {
@@ -294,8 +333,4 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
             true
         ).show()
     }
-
-
-
-
 }

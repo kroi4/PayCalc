@@ -15,7 +15,8 @@ import androidx.recyclerview.widget.RecyclerView
 import il.co.paycalc.R
 import il.co.paycalc.data.EventAdapter
 import il.co.paycalc.data.localDb.EventDatabase
-import il.co.paycalc.data.model.WorkSession
+import il.co.paycalc.data.localDb.RecordDao
+import il.co.paycalc.data.localDb.RecordDatabase
 import il.co.paycalc.data.repository.WorkSessionRepository
 import il.co.paycalc.databinding.AllItemLayoutBinding
 import il.co.paycalc.ui.RecordViewModel
@@ -31,6 +32,7 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
     private var binding: AllItemLayoutBinding by autoCleared()
     private val viewModel: RecordViewModel by activityViewModels()
 
+    private lateinit var adapter: EventAdapter
 
     // יצירת ViewModel עם ה-Factory
     private val workSessionViewModel: WorkSessionViewModel by viewModels {
@@ -42,7 +44,7 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
         )
     }
 
-    private lateinit var adapter: EventAdapter
+    private lateinit var recordDao: RecordDao // הוספת משתנה ה-recordDao
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,8 +53,13 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
     ): View? {
         binding = AllItemLayoutBinding.inflate(inflater, container, false)
 
-        binding.apply {
+        // הגדרת ה-recordDao
+        val database = RecordDatabase.getDatabase(requireContext())
+        if (database != null) {
+            recordDao = database.recordDao()
+        }
 
+        binding.apply {
             fab.setOnClickListener {
                 findNavController().navigate(R.id.action_allItemsFragment2_to_addItemFragment2)
             }
@@ -60,7 +67,6 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
             binding.settingsButton.setOnClickListener {
                 findNavController().navigate(R.id.action_allItemsFragment2_to_settingsFragment2)
             }
-
         }
 
         return binding.root
@@ -71,11 +77,10 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
 
         fetch()
 
-
         binding.recycler.layoutManager = LinearLayoutManager(requireContext())
 
-        // יצירת ה-Adapter
-        adapter = EventAdapter(mutableListOf(), this)
+        // יצירת ה-Adapter עם העברת ה-recordDao
+        adapter = EventAdapter(mutableListOf(), this, recordDao)
         binding.recycler.adapter = adapter
 
         // להאזין לנתונים מ-ViewModel ולעדכן את ה-RecyclerView
@@ -85,7 +90,6 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
             // חישוב סך השכר הכולל
             val totalSalary = workSessions.sumOf { it.totalSalary }
             binding.totalSalaryTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
-
         }
 
         // הגדרת ה-Swipe to Delete
@@ -100,7 +104,7 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
-                val workSession: WorkSession = adapter.itemAt(position)
+                val workSession = adapter.itemAt(position)
                 // מחיקת הפריט דרך ה-ViewModel
                 workSessionViewModel.deleteWorkSession(workSession)
             }
@@ -127,16 +131,14 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
         // טיפול בלחיצה ארוכה על פריט
     }
 
-    fun fetch()
-    {
+    fun fetch() {
         viewModel.getDepartures()
         viewModel.departures.observe(viewLifecycleOwner) {
             when (it.status) {
                 is Loading -> {}
                 is Success -> {
                     if (!it.status.data.isNullOrEmpty()) {
-
-
+                        // עיבוד נתונים במקרה של הצלחה
                     }
                 }
                 is Error -> {
@@ -144,21 +146,16 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
                         requireContext(),
                         "Couldn't connect to server!",
                         Toast.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
                 }
                 else -> {
                     Toast.makeText(
                         requireContext(),
                         "Couldn't connect to server!",
                         Toast.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
                 }
             }
-
         }
     }
-
-
 }

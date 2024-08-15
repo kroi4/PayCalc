@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import il.co.paycalc.data.model.holiday.Record
+import java.util.Date
 
 @Dao
 interface RecordDao {
@@ -18,4 +19,9 @@ interface RecordDao {
 
     @Query("SELECT * FROM records")
     fun getRecords(): LiveData<List<Record>>
+
+
+    @Query("SELECT * FROM records WHERE :date BETWEEN HolidayStart AND HolidayEnds")
+    suspend fun getHolidayByDate(date: String): Record?
+
 }

@@ -4,21 +4,26 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import il.co.paycalc.R
+import il.co.paycalc.data.localDb.RecordDao
 import il.co.paycalc.data.model.WorkSession
 import il.co.paycalc.databinding.ItemLayoutBinding
 import il.co.paycalc.utils.calculateTotalSalary
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
-import kotlin.math.min
 import java.util.Locale
 
-class EventAdapter(private var work: MutableList<WorkSession>, val callBack: ItemListener) :
-    RecyclerView.Adapter<EventAdapter.ItemViewHolder>() { // כאן צריך להגדיר את המחלקה כמורשה מ-RecyclerView.Adapter
+class EventAdapter(
+    private var work: MutableList<WorkSession>,
+    private val callBack: ItemListener,
+    private val recordDao: RecordDao // הוספת ה-DAO לפונקציה
+) : RecyclerView.Adapter<EventAdapter.ItemViewHolder>() {
 
     interface ItemListener {
         fun onItemClicked(index: Int)
@@ -26,8 +31,7 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
     }
 
     inner class ItemViewHolder(private val binding: ItemLayoutBinding) :
-        RecyclerView.ViewHolder(binding.root), View.OnClickListener,
-        View.OnLongClickListener {
+        RecyclerView.ViewHolder(binding.root), View.OnClickListener, View.OnLongClickListener {
 
         init {
             binding.root.setOnClickListener(this)
@@ -99,18 +103,19 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
             val totalHours = (work.endDateTime.time - work.startDateTime.time) / (1000 * 60 * 60).toDouble()
             binding.workHoursTextView.text = String.format(Locale.getDefault(), "%.1f", totalHours)
 
-            // שכר
-            val totalSalary = calculateTotalSalary(
-                work.startDateTime,
-                work.endDateTime,
-                work.hourlyWage,
-                work.additionalWages,
-                restStartHour
-            )
+            // חישוב שכר בתוך Coroutine
+            CoroutineScope(Dispatchers.Main).launch {
+                val totalSalary = calculateTotalSalary(
+                    work.startDateTime,
+                    work.endDateTime,
+                    work.hourlyWage,
+                    work.additionalWages,
+                    restStartHour,
+                    recordDao // הוספת ה-DAO כפרמטר
+                )
 
-
-            binding.salaryTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
-
+                binding.salaryTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
+            }
 
             val totalMinutes = (work.endDateTime.time - work.startDateTime.time) / (1000 * 60)
 
@@ -166,7 +171,6 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
             }
         }
 
-
         private fun setTextColorOnLightBackground(binding: ItemLayoutBinding) {
             val textColor = ContextCompat.getColor(itemView.context, R.color.text_color_on_light)
             binding.dateTextView.setTextColor(textColor)
@@ -174,7 +178,7 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
             binding.dayTextView.setTextColor(textColor)
             binding.salaryTextView.setTextColor(textColor)
             binding.hoursTextView.setTextColor(textColor)
-            binding.workHoursTextView.setTextColor(textColor)  // הוספת צבע לכמות השעות
+            binding.workHoursTextView.setTextColor(textColor)
         }
 
         private fun setTextColorOnDarkBackground(binding: ItemLayoutBinding) {
@@ -184,12 +188,8 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
             binding.hoursTextView.setTextColor(textColor)
             binding.dayTextView.setTextColor(textColor)
             binding.salaryTextView.setTextColor(textColor)
-            binding.workHoursTextView.setTextColor(textColor)  // הוספת צבע לכמות השעות
+            binding.workHoursTextView.setTextColor(textColor)
         }
-
-
-
-
     }
 
     fun itemAt(position: Int) = work[position]
@@ -200,7 +200,6 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
         notifyDataSetChanged()
     }
 
-    // פונקציה זו צריכה להיות במחלקה EventAdapter ולא בתוך ItemViewHolder
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         ItemViewHolder(
             ItemLayoutBinding.inflate(
@@ -210,12 +209,9 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
             )
         )
 
-    // פונקציה זו צריכה להיות במחלקה EventAdapter ולא בתוך ItemViewHolder
     override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
         holder.bind(work[position])
     }
 
-    // פונקציה זו צריכה להיות במחלקה EventAdapter ולא בתוך ItemViewHolder
     override fun getItemCount() = work.size
-
 }

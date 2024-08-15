@@ -4,19 +4,22 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
+import il.co.paycalc.data.localDb.RecordDao
 import il.co.skystar.utils.Loading
 import il.co.skystar.utils.Success
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 
-fun calculateTotalSalary(
+suspend fun calculateTotalSalary(
     startDate: Date,
     endDate: Date,
     hourlyWage: Double,
     additionalWages: Double,
-    restStartHour: Int
+    restStartHour: Int,
+    holidayDao: RecordDao  // הוסף את ה-DAO של החג כדי שנוכל לגשת לנתונים
 ): Double {
     var totalWage = 0.0
     var totalHours = 0
@@ -37,7 +40,6 @@ fun calculateTotalSalary(
     val workDurationInMillis = endDate.time - startDate.time
     val workDurationInHours = (workDurationInMillis / (1000 * 60 * 60)).toInt()
 
-
     for (i in 0 until workDurationInHours) {
         val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
         val currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
@@ -46,10 +48,12 @@ fun calculateTotalSalary(
         var currentRate = 1.0
 
         val isNightHour = currentHour >= 22 || currentHour < 6
+
+        // בדיקה אם מדובר ביום מנוחה (שישי/שבת) או ביום חג
         val isRestTime = (currentDayOfWeek == Calendar.SATURDAY ||
                 (currentDayOfWeek == Calendar.FRIDAY && currentHour >= restStartHour)) ||
-                (currentDayOfWeek == restEndDayOfWeek && currentHour < restEndHour)
-
+                (currentDayOfWeek == restEndDayOfWeek && currentHour < restEndHour) ||
+                isHoliday(currentDate, holidayDao) // הוספת בדיקת חג
 
         if (isRestTime) {
             restTimeHoursCount++
@@ -80,6 +84,32 @@ fun calculateTotalSalary(
     totalWage += totalHours * additionalWages
 
     return totalWage
+}
+
+// פונקציה שבודקת האם מדובר ביום חג או ערב חג
+suspend fun isHoliday(date: LocalDate, recordDao: RecordDao): Boolean {
+    val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val dateAsString = date.format(dateFormat)
+    val record = recordDao.getHolidayByDate(dateAsString)
+
+    return if (record != null && record.Name.isNotEmpty()) {
+        val isEve = isEveOfHoliday(record.Name)
+        val isFullHoliday = isFullHoliday(record.Name)
+
+        // אם זה ערב חג או חג שבתון - החישוב ייקח זאת בחשבון
+        isEve || isFullHoliday
+    } else {
+        false
+    }
+}
+
+
+private fun isEveOfHoliday(holidayName: String): Boolean {
+    return listOf("ראש השנה", "יום כיפור", "פסח", "שבועות", "סוכות").contains(holidayName)
+}
+
+private fun isFullHoliday(holidayName: String): Boolean {
+    return listOf("ראש השנה", "יום כיפור", "פסח", "שבועות", "סוכות", "יום העצמאות").contains(holidayName)
 }
 
 

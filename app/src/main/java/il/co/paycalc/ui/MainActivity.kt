@@ -2,8 +2,12 @@ package il.co.paycalc.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.NavDestination
+import androidx.navigation.findNavController
 import il.co.paycalc.MyApplication
+import il.co.paycalc.R
 import il.co.paycalc.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
