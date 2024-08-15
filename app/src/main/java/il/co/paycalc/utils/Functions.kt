@@ -65,20 +65,21 @@ fun calculateTotalSalary(
         totalWage += currentWage
         totalHours++
 
-        println("Hour: $currentHour, Day: $currentDayOfWeek, Rate: $currentRate, Current Wage: $currentWage, Total Wage So Far: $totalWage")
-
         calendar.add(Calendar.HOUR_OF_DAY, 1)
     }
 
     totalWage += totalHours * additionalWages
-    println("Total Hours: $totalHours, Additional Wages: ${totalHours * additionalWages}, Final Total Wage: $totalWage")
 
     return totalWage
 }
 
 
-
-
+fun clearHolidaysFromPreferences(context: Context) {
+    val sharedPreferences = context.getSharedPreferences("holiday_preferences", Context.MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    editor.remove("holidays")
+    editor.apply()
+}
 
 
 fun showToast(context: Context, text: String) {

@@ -47,7 +47,6 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
             val dateFormatDayMonth = SimpleDateFormat("dd/MM", Locale.getDefault())
             val sharedPreferences = itemView.context.getSharedPreferences("your_preference_file_key", Context.MODE_PRIVATE)
             val restStartHour = sharedPreferences.getInt("rest_start_hour_key", 16) // ערך ברירת מחדל 16
-            val restEndHour = sharedPreferences.getInt("rest_end_hour_key", 4) // ערך ברירת מחדל 4
 
             // מיפוי ידני להסרת "יום" והמרה באמצעות מחרוזות משאבים
             val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())

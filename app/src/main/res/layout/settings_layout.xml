@@ -173,30 +173,8 @@
             android:gravity="center_horizontal"
             android:layout_gravity="center_vertical" />
 
-        <View
-            android:layout_width="10dp"
-            android:layout_height="match_parent" />
-
-
         <Button
             android:id="@+id/buttonSetRestDayStart"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/start_time"
-            android:maxLines="1"
-            android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="8sp"
-            android:autoSizeMaxTextSize="16sp"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical" />
-
-        <View
-            android:layout_width="10dp"
-            android:layout_height="match_parent" />
-
-
-        <Button
-            android:id="@+id/buttonSetRestDayEnd"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
@@ -205,11 +183,9 @@
             android:autoSizeMinTextSize="8sp"
             android:autoSizeStepGranularity="1sp"
             android:autoSizeTextType="uniform"
-            android:enabled="false"
             android:maxLines="1"
-            android:text="@string/end_time"/>
+            android:text="@string/set_times"/>
     </LinearLayout>
-
 
     <!-- Save Button -->
     <Button

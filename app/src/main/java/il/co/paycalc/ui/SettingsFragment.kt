@@ -80,21 +80,11 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
             }
 
             // Rest Day Start Time Selection
-            buttonSetRestDayStart.setOnClickListener {
+            binding.buttonSetRestDayStart.setOnClickListener {
                 showTimePicker { startTime ->
                     restDayStartTime = startTime
                     restDayEndTime = startTime + 36 * 60 * 60 * 1000 // 36 hours later
-                    binding.buttonSetRestDayStart.text = formatTime(restDayStartTime!!)
-                    binding.buttonSetRestDayEnd.text = formatTime(restDayEndTime!!)
-                    buttonSetRestDayEnd.isEnabled = true
-                }
-            }
-
-            // Rest Day End Time Selection
-            buttonSetRestDayEnd.setOnClickListener {
-                showTimePicker { endTime ->
-                    restDayEndTime = endTime
-                    binding.buttonSetRestDayEnd.text = formatTime(restDayEndTime!!)
+                    binding.buttonSetRestDayStart.text = formatTimeRange(restDayStartTime!!, restDayEndTime!!)
                 }
             }
 
@@ -220,8 +210,6 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
 
         if (restDayStartTime != 0L && restDayEndTime != 0L) {
             binding.buttonSetRestDayStart.text = formatTime(restDayStartTime!!)
-            binding.buttonSetRestDayEnd.text = formatTime(restDayEndTime!!)
-            binding.buttonSetRestDayEnd.isEnabled = true
         }
     }
 }

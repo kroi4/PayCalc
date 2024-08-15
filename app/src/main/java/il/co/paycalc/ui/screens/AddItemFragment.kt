@@ -33,7 +33,6 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
     private var endDate: Long? = null
     private var endTime: Long? = null
     private var restStartHour: Int? = null
-    private var restEndHour: Int? = null
 
     private val workSessionViewModel: WorkSessionViewModel by viewModels {
         WorkSessionViewModelFactory(
@@ -58,9 +57,9 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
         startDate = calendar.timeInMillis
         endDate = calendar.timeInMillis
 
-        binding.buttonSelectStartDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
-        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
-
+        // Set default dates in the required format
+        binding.buttonSelectStartDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(calendar.time)
+        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(calendar.time)
 
         binding.apply {
             radioGroupShiftType.setOnCheckedChangeListener { _, checkedId ->
@@ -70,22 +69,23 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                         startTime = workSessionViewModel.morningShiftStartTime
                         endTime = workSessionViewModel.morningShiftEndTime
                         endDate = startDate // תאריך סיום זהה לתאריך התחלה
-                        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+                        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
                     }
                     R.id.radioAfternoon -> {
                         startTime = workSessionViewModel.eveningShiftStartTime
                         endTime = workSessionViewModel.eveningShiftEndTime
                         endDate = startDate // תאריך סיום זהה לתאריך התחלה
-                        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+                        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
                     }
                     R.id.radioNight -> {
                         startTime = workSessionViewModel.nightShiftStartTime
                         endTime = workSessionViewModel.nightShiftEndTime
                         calendar.add(Calendar.DATE, 1) // הוספת יום אחד לתאריך הסיום
                         endDate = calendar.timeInMillis
-                        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+                        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
                     }
                 }
+
 
                 // Enable the end time button when any shift type is selected
                 binding.buttonSelectEndTime.isEnabled = true
@@ -94,9 +94,7 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                 updateCalculatedResult()
             }
 
-
             buttonSelectStartDate.setOnClickListener {
-                // אם startDate מוגדר, השתמש בו, אחרת השתמש בתאריך הנוכחי
                 val calendar = Calendar.getInstance().apply {
                     if (startDate != null) {
                         timeInMillis = startDate!!
@@ -107,7 +105,7 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     { _, year, monthOfYear, dayOfMonth ->
                         calendar.set(year, monthOfYear, dayOfMonth)
                         startDate = calendar.timeInMillis
-                        binding.buttonSelectStartDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
+                        binding.buttonSelectStartDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(calendar.time)
 
                         // העתקת תאריך התחלה לתאריך סיום
                         if (binding.radioGroupShiftType.checkedRadioButtonId != R.id.radioNight) {
@@ -117,7 +115,7 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                             calendar.add(Calendar.DATE, 1)
                             endDate = calendar.timeInMillis
                         }
-                        binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+                        binding.buttonSelectEndDate.text = SimpleDateFormat("EEE, d MMM yyyy", Locale("he")).format(endDate)
 
                         // הפעלת כפתור בחירת שעת סיום מאחר ותאריך התחלה נבחר
                         binding.buttonSelectEndTime.isEnabled = true
@@ -129,7 +127,6 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     calendar.get(Calendar.DAY_OF_MONTH)
                 ).show()
             }
-
 
             buttonSelectStartTime.setOnClickListener {
                 showTimePicker(startTime) { time ->
@@ -144,7 +141,6 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
             }
 
             buttonSelectEndDate.setOnClickListener {
-                // אם endDate מוגדר, השתמש בו, אחרת השתמש בתאריך הנוכחי
                 val calendar = Calendar.getInstance().apply {
                     if (endDate != null) {
                         timeInMillis = endDate!!
@@ -158,7 +154,7 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
 
                         if (selectedEndDate >= startDate!!) {
                             endDate = selectedEndDate
-                            binding.buttonSelectEndDate.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(endDate)
+                            binding.buttonSelectEndDate.text = SimpleDateFormat("EEEE, d MMM yyyy", Locale("he")).format(endDate)
                         } else {
                             // הצגת הודעה למשתמש אם תאריך הסיום קטן מתאריך ההתחלה
                             showToast(requireContext(), getString(R.string.end_date_before_start_date))
@@ -171,7 +167,6 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     calendar.get(Calendar.DAY_OF_MONTH)
                 ).show()
             }
-
 
             buttonSelectEndTime.setOnClickListener {
                 if (startTime == null || startDate == null) {
@@ -190,7 +185,6 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                 }
             }
 
-
             // Listener for finish button
             finishBtn.setOnClickListener {
                 if (startDate != null && startTime != null && endDate != null && endTime != null) {
@@ -199,7 +193,6 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
 
                     val hourlyWage = workSessionViewModel.hourlyWage
                     val additionalWages = workSessionViewModel.additionalWages
-
 
                     val totalSalary = calculateTotalSalary(
                         startDateTime,
@@ -267,11 +260,9 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
 
             // Show the divider and TextView once the result is calculated
             binding.calculatedResultTextView.visibility = View.VISIBLE
-            // Assuming the View divider has an ID or using `findViewById`
-            binding.root.findViewById<View>(R.id.divider_id).visibility = View.VISIBLE
+            binding.dividerId.visibility = View.VISIBLE
         }
     }
-
 
     private fun updateShiftTimeButtons() {
         binding.buttonSelectStartTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(startTime ?: 0L))
