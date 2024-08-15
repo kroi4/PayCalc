@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -16,14 +18,19 @@ import il.co.paycalc.data.localDb.EventDatabase
 import il.co.paycalc.data.model.WorkSession
 import il.co.paycalc.data.repository.WorkSessionRepository
 import il.co.paycalc.databinding.AllItemLayoutBinding
+import il.co.paycalc.ui.RecordViewModel
 import il.co.paycalc.ui.viewmodel.WorkSessionViewModel
 import il.co.paycalc.ui.viewmodel.WorkSessionViewModelFactory
 import il.co.paycalc.utils.autoCleared
+import il.co.skystar.utils.Loading
+import il.co.skystar.utils.Success
 import java.util.Locale
 
 class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemListener {
 
     private var binding: AllItemLayoutBinding by autoCleared()
+    private val viewModel: RecordViewModel by activityViewModels()
+
 
     // יצירת ViewModel עם ה-Factory
     private val workSessionViewModel: WorkSessionViewModel by viewModels {
@@ -61,6 +68,9 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        fetch()
+
 
         binding.recycler.layoutManager = LinearLayoutManager(requireContext())
 
@@ -116,4 +126,39 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
     override fun onItemLongClicked(index: Int) {
         // טיפול בלחיצה ארוכה על פריט
     }
+
+    fun fetch()
+    {
+        viewModel.getDepartures()
+        viewModel.departures.observe(viewLifecycleOwner) {
+            when (it.status) {
+                is Loading -> {}
+                is Success -> {
+                    if (!it.status.data.isNullOrEmpty()) {
+
+
+                    }
+                }
+                is Error -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Couldn't connect to server!",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+                }
+                else -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Couldn't connect to server!",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+                }
+            }
+
+        }
+    }
+
+
 }

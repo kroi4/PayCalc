@@ -2,28 +2,38 @@ package il.co.paycalc.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.WindowManager
-import il.co.paycalc.R
+import androidx.lifecycle.ViewModelProvider
+import il.co.paycalc.MyApplication
 import il.co.paycalc.databinding.ActivityMainBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var recordViewModel: RecordViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        // קריאה ל-API ב-thread אחורי (Dispatchers.IO)
-        CoroutineScope(Dispatchers.IO).launch {
-            val success = HolidayUtils.updateHolidays(this@MainActivity)
-            if (success) {
-                // כאן תוכל לעדכן את ה-UI אם צריך, על ידי שימוש ב-Dispatchers.Main
-                CoroutineScope(Dispatchers.Main).launch {
-                    // עדכון UI
-                }
-            }
-        }
+        val repository = (application as MyApplication).recordRepository
+        recordViewModel = ViewModelProvider(
+            this,
+            RecordViewModelFactory(repository)
+        ).get(RecordViewModel::class.java)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+//        val bottomNavigationView = binding.bottomNavigationView
+//        val navController = findNavController(R.id.nav_host_fragment_main)
+//
+//        bottomNavigationView.setupWithNavController(navController)
+//
+//        navController.addOnDestinationChangedListener { _, nd: NavDestination, _ ->
+//            if (nd.id == R.id.departuresFlightsFragment || nd.id == R.id.arrivalsFlightsFragment || nd.id == R.id.favoriteFragment) {
+//                bottomNavigationView.visibility = View.VISIBLE
+//            } else {
+//                bottomNavigationView.visibility = View.GONE
+//            }
+//        }
     }
 }

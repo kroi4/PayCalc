@@ -6,7 +6,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import il.co.paycalc.R
@@ -14,11 +16,14 @@ import il.co.paycalc.data.localDb.EventDatabase
 import il.co.paycalc.data.model.WorkSession
 import il.co.paycalc.data.repository.WorkSessionRepository
 import il.co.paycalc.databinding.AddItemLayoutBinding
+import il.co.paycalc.ui.RecordViewModel
 import il.co.paycalc.ui.viewmodel.WorkSessionViewModel
 import il.co.paycalc.ui.viewmodel.WorkSessionViewModelFactory
 import il.co.paycalc.utils.autoCleared
 import il.co.paycalc.utils.calculateTotalSalary
 import il.co.paycalc.utils.showToast
+import il.co.skystar.utils.Loading
+import il.co.skystar.utils.Success
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -28,6 +33,7 @@ import kotlin.math.min
 class AddItemFragment : Fragment(R.layout.add_item_layout) {
 
     private var binding: AddItemLayoutBinding by autoCleared()
+
     private var startDate: Long? = null
     private var startTime: Long? = null
     private var endDate: Long? = null
@@ -49,6 +55,8 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
         savedInstanceState: Bundle?
     ): View? {
         binding = AddItemLayoutBinding.inflate(layoutInflater)
+
+
 
         // Disable the end time button initially
         binding.buttonSelectEndTime.isEnabled = false
@@ -195,7 +203,6 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
                     val additionalWages = workSessionViewModel.additionalWages
 
                     val totalSalary = calculateTotalSalary(
-                        requireContext(),
                         startDateTime,
                         endDateTime,
                         hourlyWage,
@@ -244,7 +251,7 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
             val additionalWages = workSessionViewModel.additionalWages
             val restStartHour = this.restStartHour ?: 16
 
-            val totalSalary = calculateTotalSalary(requireContext(),startDateTime, endDateTime, hourlyWage, additionalWages, restStartHour)
+            val totalSalary = calculateTotalSalary(startDateTime, endDateTime, hourlyWage, additionalWages, restStartHour)
 
             val totalHours = (endDateTime.time - startDateTime.time) / (1000 * 60 * 60).toDouble()
             val overtimeHours = maxOf(0.0, totalHours - 8.0)
@@ -287,4 +294,8 @@ class AddItemFragment : Fragment(R.layout.add_item_layout) {
             true
         ).show()
     }
+
+
+
+
 }

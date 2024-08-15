@@ -101,7 +101,6 @@ class EventAdapter(private var work: MutableList<WorkSession>, val callBack: Ite
 
             // שכר
             val totalSalary = calculateTotalSalary(
-                itemView.context,  // שינוי מ-requireContext() ל-itemView.context
                 work.startDateTime,
                 work.endDateTime,
                 work.hourlyWage,

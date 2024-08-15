@@ -3,13 +3,15 @@ package il.co.paycalc.utils
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.recyclerview.widget.GridLayoutManager
+import il.co.skystar.utils.Loading
+import il.co.skystar.utils.Success
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
 
 fun calculateTotalSalary(
-    context: Context,
     startDate: Date,
     endDate: Date,
     hourlyWage: Double,
@@ -35,8 +37,6 @@ fun calculateTotalSalary(
     val workDurationInMillis = endDate.time - startDate.time
     val workDurationInHours = (workDurationInMillis / (1000 * 60 * 60)).toInt()
 
-    // טעינת החגים מ-SharedPreferences
-    val holidaysList = HolidayUtils.loadHolidays(context)
 
     for (i in 0 until workDurationInHours) {
         val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -48,31 +48,8 @@ fun calculateTotalSalary(
         val isNightHour = currentHour >= 22 || currentHour < 6
         val isRestTime = (currentDayOfWeek == Calendar.SATURDAY ||
                 (currentDayOfWeek == Calendar.FRIDAY && currentHour >= restStartHour)) ||
-                (currentDayOfWeek == restEndDayOfWeek && currentHour < restEndHour) ||
-                holidaysList.any { holiday ->
-                    currentDate.isEqual(holiday.start) ||
-                            (currentDate.isAfter(holiday.start) && currentDate.isBefore(holiday.end)) ||
-                            currentDate.isEqual(holiday.end)
-                }
+                (currentDayOfWeek == restEndDayOfWeek && currentHour < restEndHour)
 
-        Log.d("RestTimeDebug", "---- Debug Information ----")
-        Log.d("RestTimeDebug", "currentDayOfWeek: $currentDayOfWeek")
-        Log.d("RestTimeDebug", "currentHour: $currentHour")
-        Log.d("RestTimeDebug", "restStartHour: $restStartHour")
-        Log.d("RestTimeDebug", "restEndDayOfWeek: $restEndDayOfWeek")
-        Log.d("RestTimeDebug", "restEndHour: $restEndHour")
-        Log.d("RestTimeDebug", "currentDate: $currentDate")
-
-        Log.d("RestTimeDebug", "Check 1 (Saturday): ${currentDayOfWeek == Calendar.SATURDAY}")
-        Log.d("RestTimeDebug", "Check 2 (Friday and hour >= restStartHour): ${(currentDayOfWeek == Calendar.FRIDAY && currentHour >= restStartHour)}")
-        Log.d("RestTimeDebug", "Check 3 (restEndDayOfWeek and hour < restEndHour): ${(currentDayOfWeek == restEndDayOfWeek && currentHour < restEndHour)}")
-        Log.d("RestTimeDebug", "Check 4 (Holiday in holidaysList): ${holidaysList.any { currentDate.isEqual(it.start) || currentDate.isEqual(it.end) || (currentDate.isAfter(it.start) && currentDate.isBefore(it.end)) }}")
-
-        holidaysList.forEach { holiday ->
-            Log.d("HolidaysDebug", "Holiday in list: $holiday")
-        }
-        Log.d("RestTimeDebug", "Final isRestTime: $isRestTime")
-        Log.d("RestTimeDebug", "--------------------------")
 
         if (isRestTime) {
             restTimeHoursCount++
@@ -105,7 +82,9 @@ fun calculateTotalSalary(
     return totalWage
 }
 
+
 fun showToast(context: Context, text: String) {
     val toast = Toast.makeText(context, text, Toast.LENGTH_SHORT)
     toast.show()
 }
+
