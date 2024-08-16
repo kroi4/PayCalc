@@ -1,4 +1,4 @@
-package il.co.paycalc.data.localDb
+package il.co.paycalc.data.localDb.records
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao

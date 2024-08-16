@@ -1,8 +1,7 @@
 package il.co.paycalc
 
 import android.app.Application
-import il.co.paycalc.data.localDb.EventDatabase
-import il.co.paycalc.data.localDb.RecordDatabase
+import il.co.paycalc.data.localDb.records.RecordDatabase
 import il.co.paycalc.data.remoteDb.RecordRemoteDataSource
 import il.co.paycalc.data.repository.RecordRepository
 import il.co.skystar.api.RetrofitInstance

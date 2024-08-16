@@ -5,11 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import il.co.paycalc.R
-import il.co.paycalc.data.localDb.RecordDao
+import il.co.paycalc.data.localDb.records.RecordDao
 import il.co.paycalc.data.model.WorkSession
 import il.co.paycalc.databinding.ItemLayoutBinding
+import il.co.paycalc.ui.viewmodels.worksession.WorkSessionViewModel
 import il.co.paycalc.utils.calculateTotalSalary
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +24,9 @@ import java.util.Locale
 class EventAdapter(
     private var work: MutableList<WorkSession>,
     private val callBack: ItemListener,
-    private val recordDao: RecordDao // הוספת ה-DAO לפונקציה
+    private val recordDao: RecordDao, // הוספת ה-DAO לפונקציה
+    private val workSessionViewModel: WorkSessionViewModel, // מעבירים את ה-ViewModel מבחוץ
+    private val lifecycleOwner: LifecycleOwner // מעבירים גם את ה-LifecycleOwner מבחוץ
 ) : RecyclerView.Adapter<EventAdapter.ItemViewHolder>() {
 
     interface ItemListener {
@@ -114,7 +118,15 @@ class EventAdapter(
                     recordDao // הוספת ה-DAO כפרמטר
                 )
 
-                binding.salaryTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
+                // להאזין לנתונים מ-ViewModel ולעדכן את השכר
+                workSessionViewModel.getWorkSessionById(work.id).observe(lifecycleOwner) { workSession: WorkSession? ->
+                    if (workSession != null) {
+                        binding.salaryTextView.text = String.format(Locale.getDefault(), "%.2f₪", workSession.totalSalary)
+                    }
+                }
+
+
+//                binding.salaryTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
             }
 
             val totalMinutes = (work.endDateTime.time - work.startDateTime.time) / (1000 * 60)
@@ -139,6 +151,8 @@ class EventAdapter(
                     setTextColorOnDarkBackground(binding)
                 }
             }
+
+
         }
 
         private fun calculateShiftMinutes(startDateTime: Date, endDateTime: Date, shiftStartHour: Int, shiftEndHour: Int): Long {

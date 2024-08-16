@@ -1,4 +1,4 @@
-package il.co.paycalc.ui
+package il.co.paycalc.ui.viewmodels.records
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel

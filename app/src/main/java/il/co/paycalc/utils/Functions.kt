@@ -1,12 +1,8 @@
 package il.co.paycalc.utils
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
-import androidx.recyclerview.widget.GridLayoutManager
-import il.co.paycalc.data.localDb.RecordDao
-import il.co.skystar.utils.Loading
-import il.co.skystar.utils.Success
+import il.co.paycalc.data.localDb.records.RecordDao
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -51,9 +47,10 @@ suspend fun calculateTotalSalary(
 
         // בדיקה אם מדובר ביום מנוחה (שישי/שבת) או ביום חג
         val isRestTime = (currentDayOfWeek == Calendar.SATURDAY ||
-                (currentDayOfWeek == Calendar.FRIDAY && currentHour >= restStartHour)) ||
+                (currentDayOfWeek == Calendar.FRIDAY && currentHour >= restStartHour) ||
                 (currentDayOfWeek == restEndDayOfWeek && currentHour < restEndHour) ||
-                isHoliday(currentDate, holidayDao) // הוספת בדיקת חג
+                (isHoliday(currentDate, holidayDao) && currentHour >= restStartHour) ||
+                (isHoliday(currentDate, holidayDao) && currentHour < restEndHour))
 
         if (isRestTime) {
             restTimeHoursCount++
@@ -83,7 +80,7 @@ suspend fun calculateTotalSalary(
 
     totalWage += totalHours * additionalWages
 
-    return totalWage
+    return totalWage*4
 }
 
 // פונקציה שבודקת האם מדובר ביום חג או ערב חג

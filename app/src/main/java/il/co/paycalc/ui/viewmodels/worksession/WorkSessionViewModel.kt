@@ -1,4 +1,4 @@
-package il.co.paycalc.ui.viewmodel
+package il.co.paycalc.ui.viewmodels.worksession
 
 import android.app.Application
 import android.content.SharedPreferences
@@ -71,6 +71,10 @@ class WorkSessionViewModel(application: Application, private val repository: Wor
         viewModelScope.launch {
             _workSessions.value = repository.getAllWorkSessions()
         }
+    }
+
+    fun getWorkSessionById(workSessionId: Int): LiveData<WorkSession?> {
+        return repository.getWorkSessionById(workSessionId)
     }
 
     fun insertWorkSession(workSession: WorkSession) {

@@ -14,14 +14,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import il.co.paycalc.R
 import il.co.paycalc.data.EventAdapter
-import il.co.paycalc.data.localDb.EventDatabase
-import il.co.paycalc.data.localDb.RecordDao
-import il.co.paycalc.data.localDb.RecordDatabase
+import il.co.paycalc.data.localDb.events.EventDatabase
+import il.co.paycalc.data.localDb.records.RecordDao
+import il.co.paycalc.data.localDb.records.RecordDatabase
 import il.co.paycalc.data.repository.WorkSessionRepository
 import il.co.paycalc.databinding.AllItemLayoutBinding
-import il.co.paycalc.ui.RecordViewModel
-import il.co.paycalc.ui.viewmodel.WorkSessionViewModel
-import il.co.paycalc.ui.viewmodel.WorkSessionViewModelFactory
+import il.co.paycalc.ui.viewmodels.records.RecordViewModel
+import il.co.paycalc.ui.viewmodels.worksession.WorkSessionViewModel
+import il.co.paycalc.ui.viewmodels.worksession.WorkSessionViewModelFactory
 import il.co.paycalc.utils.autoCleared
 import il.co.skystar.utils.Loading
 import il.co.skystar.utils.Success
@@ -79,8 +79,8 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
 
         binding.recycler.layoutManager = LinearLayoutManager(requireContext())
 
-        // יצירת ה-Adapter עם העברת ה-recordDao
-        adapter = EventAdapter(mutableListOf(), this, recordDao)
+        // יצירת ה-Adapter עם כל הפרמטרים הנדרשים
+        adapter = EventAdapter(mutableListOf(), this, recordDao, workSessionViewModel, viewLifecycleOwner)
         binding.recycler.adapter = adapter
 
         // להאזין לנתונים מ-ViewModel ולעדכן את ה-RecyclerView

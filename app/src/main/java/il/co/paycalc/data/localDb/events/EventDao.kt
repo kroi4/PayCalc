@@ -1,4 +1,4 @@
-package il.co.paycalc.data.localDb
+package il.co.paycalc.data.localDb.events
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
@@ -28,7 +28,7 @@ interface EventDao {
     suspend fun getAllWorkSessions(): List<WorkSession>
 
     @Query("SELECT * FROM work_sessions WHERE id = :workSessionId LIMIT 1")
-    suspend fun getWorkSessionById(workSessionId: Int): WorkSession?
+    fun getWorkSessionById(workSessionId: Int): LiveData<WorkSession?>
 
     @Query("""
         SELECT ws.hourlyWage * 

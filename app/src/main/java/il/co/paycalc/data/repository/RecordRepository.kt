@@ -2,16 +2,13 @@ package il.co.paycalc.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import il.co.paycalc.data.localDb.RecordDao
-import il.co.paycalc.data.localDb.RecordDatabase
+import il.co.paycalc.data.localDb.records.RecordDao
+import il.co.paycalc.data.localDb.records.RecordDatabase
 import il.co.paycalc.data.remoteDb.RecordRemoteDataSource
 import il.co.paycalc.utils.Constants.RESOURCE_ID
 import il.co.paycalc.data.api.HolidayApi
 import il.co.paycalc.data.model.holiday.Holiday
 import il.co.paycalc.utils.performFetchingAndSaving
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
 
 class RecordRepository(
     private val apiInterface: HolidayApi,

@@ -1,4 +1,4 @@
-package il.co.paycalc.data.localDb
+package il.co.paycalc.data.localDb.records
 
 import android.content.Context
 import androidx.room.Database

@@ -1,4 +1,4 @@
-package il.co.paycalc.ui.viewmodel
+package il.co.paycalc.ui.viewmodels.worksession
 
 import android.app.Application
 import androidx.lifecycle.ViewModel

@@ -1,6 +1,7 @@
 package il.co.paycalc.data.repository
 
-import il.co.paycalc.data.localDb.EventDao
+import androidx.lifecycle.LiveData
+import il.co.paycalc.data.localDb.events.EventDao
 import il.co.paycalc.data.model.WorkSession
 
 class WorkSessionRepository(private val eventDao: EventDao) {
@@ -13,7 +14,7 @@ class WorkSessionRepository(private val eventDao: EventDao) {
         return eventDao.getAllWorkSessions()
     }
 
-    suspend fun getWorkSessionById(workSessionId: Int): WorkSession? {
+    fun getWorkSessionById(workSessionId: Int): LiveData<WorkSession?> {
         return eventDao.getWorkSessionById(workSessionId)
     }
 

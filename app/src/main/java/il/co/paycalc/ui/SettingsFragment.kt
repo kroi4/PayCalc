@@ -10,11 +10,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import il.co.paycalc.R
-import il.co.paycalc.data.localDb.EventDatabase
+import il.co.paycalc.data.localDb.events.EventDatabase
 import il.co.paycalc.data.repository.WorkSessionRepository
 import il.co.paycalc.databinding.SettingsLayoutBinding
-import il.co.paycalc.ui.viewmodel.WorkSessionViewModel
-import il.co.paycalc.ui.viewmodel.WorkSessionViewModelFactory
+import il.co.paycalc.ui.viewmodels.worksession.WorkSessionViewModel
+import il.co.paycalc.ui.viewmodels.worksession.WorkSessionViewModelFactory
 import il.co.paycalc.utils.autoCleared
 import java.text.SimpleDateFormat
 import java.util.Calendar

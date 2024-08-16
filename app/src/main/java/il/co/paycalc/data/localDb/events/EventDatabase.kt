@@ -1,10 +1,11 @@
-package il.co.paycalc.data.localDb
+package il.co.paycalc.data.localDb.events
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import il.co.paycalc.data.localDb.Converters
 import il.co.paycalc.data.model.WorkSession
 
 @Database(entities = [WorkSession::class], version = 3, exportSchema = false)
