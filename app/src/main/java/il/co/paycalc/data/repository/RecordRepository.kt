@@ -9,24 +9,21 @@ import il.co.paycalc.utils.Constants.RESOURCE_ID
 import il.co.paycalc.data.api.HolidayApi
 import il.co.paycalc.data.model.holiday.Holiday
 import il.co.paycalc.utils.performFetchingAndSaving
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import il.co.paycalc.data.model.holiday.Record
 
 class RecordRepository(
     private val apiInterface: HolidayApi,
     private val recordDatabase: RecordDatabase,
     private val remoteDatasource: RecordRemoteDataSource,
-    private val localDatasource: RecordDao, ) {
+    private val recordDao: RecordDao,
+) {
 
     private val recordsLiveData = MutableLiveData<Holiday>()
 
     val records: LiveData<Holiday>
         get() = recordsLiveData
-
-//    suspend fun isHoliday(date: Date, recordDao: RecordDao): Boolean {
-//        val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-//        val dateAsString = date.format(dateFormat)
-//        val record = recordDao.getHolidayByDate(dateAsString)
-//        return record != null && record.Name.isNotEmpty()
-//    }
 
 
     suspend fun getRecords() {
@@ -40,12 +37,11 @@ class RecordRepository(
     }
 
 
-
-    fun getDepartures() = performFetchingAndSaving(
-        {localDatasource.getRecords()},
-        {remoteDatasource.getRecords(RESOURCE_ID)},
-        {localDatasource.clearRecords()},
-        {localDatasource.insertRecord(it.result.records!!)}
+    fun getHolidays() = performFetchingAndSaving(
+        { recordDao.getRecords() },
+        { remoteDatasource.getRecords(RESOURCE_ID) },
+        { recordDao.clearRecords() },
+        { recordDao.insertRecord(it.result.records!!) }
     )
 
     fun clearRecords() {

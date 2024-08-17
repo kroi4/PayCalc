@@ -1,4 +1,4 @@
-package il.co.paycalc.ui.screens
+package il.co.paycalc.ui
 
 import android.app.TimePickerDialog
 import android.content.Context
@@ -7,22 +7,32 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import il.co.paycalc.R
 import il.co.paycalc.data.localDb.events.EventDatabase
 import il.co.paycalc.data.repository.WorkSessionRepository
 import il.co.paycalc.databinding.SettingsLayoutBinding
+import il.co.paycalc.ui.viewmodels.records.RecordViewModel
 import il.co.paycalc.ui.viewmodels.worksession.WorkSessionViewModel
 import il.co.paycalc.ui.viewmodels.worksession.WorkSessionViewModelFactory
+import il.co.paycalc.utils.Loading
+import il.co.paycalc.utils.PreferencesManager
+import il.co.paycalc.utils.Success
 import il.co.paycalc.utils.autoCleared
+import il.co.paycalc.utils.showToast
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Calendar
 import java.util.Locale
 
 class SettingsFragment : Fragment(R.layout.settings_layout) {
 
     private var binding: SettingsLayoutBinding by autoCleared()
+    private lateinit var preferencesManager: PreferencesManager
+    private val viewModel: RecordViewModel by activityViewModels()
+
     private var morningShiftStartTime: Long? = null
     private var morningShiftEndTime: Long? = null
     private var eveningShiftStartTime: Long? = null
@@ -54,7 +64,18 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
     ): View? {
         binding = SettingsLayoutBinding.inflate(layoutInflater)
 
+        // אתחול מוקדם של preferencesManager
+        preferencesManager = PreferencesManager(requireContext())
+
         binding.apply {
+            // עדכון הכפתור עם התאריך והשעה בלבד ללא שניות
+            val lastFetchTime = preferencesManager.getLastFetchTime()
+            buttonFetchHolidays.text = lastFetchTime
+
+            buttonFetchHolidays.setOnClickListener {
+                fetchHolidays()
+            }
+
             buttonSetMorningShift.setOnClickListener {
                 showTimeRangePicker { startTime, endTime ->
                     morningShiftStartTime = startTime
@@ -84,13 +105,15 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                 showTimePicker { startTime ->
                     restDayStartTime = startTime
                     restDayEndTime = startTime + 36 * 60 * 60 * 1000 // 36 hours later
-                    binding.buttonSetRestDayStart.text = formatTimeRange(restDayStartTime!!, restDayEndTime!!)
+                    binding.buttonSetRestDayStart.text =
+                        formatTimeRange(restDayStartTime!!, restDayEndTime!!)
                 }
             }
 
             saveButton.setOnClickListener {
                 val hourlyWage = binding.hourlyWageEditText.text.toString().toDoubleOrNull() ?: 0.0
-                val additionalWages = binding.additionalWagesEditText.text.toString().toDoubleOrNull() ?: 0.0
+                val additionalWages =
+                    binding.additionalWagesEditText.text.toString().toDoubleOrNull() ?: 0.0
 
                 // Update wages in ViewModel
                 workSessionViewModel.updateWages(hourlyWage, additionalWages)
@@ -98,7 +121,8 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
                 // Ensure shift times are non-null before updating
                 if (morningShiftStartTime != null && morningShiftEndTime != null &&
                     eveningShiftStartTime != null && eveningShiftEndTime != null &&
-                    nightShiftStartTime != null && nightShiftEndTime != null) {
+                    nightShiftStartTime != null && nightShiftEndTime != null
+                ) {
 
                     workSessionViewModel.updateShiftTimes(
                         morningShiftStartTime!!, morningShiftEndTime!!,
@@ -109,7 +133,8 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
 
                 // Save rest day start and end times
                 if (restDayStartTime != null && restDayEndTime != null) {
-                    val sharedPreferences = requireActivity().getSharedPreferences("shift_prefs", Context.MODE_PRIVATE)
+                    val sharedPreferences =
+                        requireActivity().getSharedPreferences("shift_prefs", Context.MODE_PRIVATE)
                     sharedPreferences.edit().apply {
                         putLong("rest_day_start_time", restDayStartTime!!)
                         putLong("rest_day_end_time", restDayEndTime!!)
@@ -124,6 +149,34 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
 
         return binding.root
     }
+
+    private fun fetchHolidays() {
+
+        viewModel.getHolidays()
+        viewModel.holidays.observe(viewLifecycleOwner) {
+            when (it.status) {
+                is Loading -> {}
+                is Success -> {
+                    if (!it.status.data.isNullOrEmpty()) {
+                        val currentTime = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                        preferencesManager.saveLastFetchTime(currentTime)
+
+                        initializeSettingsView()
+                    }
+                }
+
+                is Error -> {
+                    showToast(requireContext(), getString(R.string.couldnt_connect_to_server))
+                }
+
+                else -> {
+                    showToast(requireContext(), getString(R.string.couldnt_connect_to_server))
+                }
+            }
+        }
+
+    }
+
 
     private fun showTimeRangePicker(onTimeRangeSelected: (Long, Long) -> Unit) {
         val calendar = Calendar.getInstance()
@@ -181,7 +234,8 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
     }
 
     private fun initializeSettingsView() {
-        val sharedPreferences = requireActivity().getSharedPreferences("shift_prefs", Context.MODE_PRIVATE)
+        val sharedPreferences =
+            requireActivity().getSharedPreferences("shift_prefs", Context.MODE_PRIVATE)
 
         // Load saved hourly wage and additional wages
         val hourlyWage = workSessionViewModel.hourlyWage
@@ -200,16 +254,24 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
         nightShiftEndTime = workSessionViewModel.nightShiftEndTime
 
         // Update button texts with saved times
-        binding.buttonSetMorningShift.text = formatTimeRange(morningShiftStartTime!!, morningShiftEndTime!!)
-        binding.buttonSetEveningShift.text = formatTimeRange(eveningShiftStartTime!!, eveningShiftEndTime!!)
-        binding.buttonSetNightShift.text = formatTimeRange(nightShiftStartTime!!, nightShiftEndTime!!)
+        binding.buttonSetMorningShift.text =
+            formatTimeRange(morningShiftStartTime!!, morningShiftEndTime!!)
+        binding.buttonSetEveningShift.text =
+            formatTimeRange(eveningShiftStartTime!!, eveningShiftEndTime!!)
+        binding.buttonSetNightShift.text =
+            formatTimeRange(nightShiftStartTime!!, nightShiftEndTime!!)
+
 
         // Load rest day times from SharedPreferences
         restDayStartTime = sharedPreferences.getLong("rest_day_start_time", 0L)
         restDayEndTime = sharedPreferences.getLong("rest_day_end_time", 0L)
 
-        if (restDayStartTime != 0L && restDayEndTime != 0L) {
-            binding.buttonSetRestDayStart.text = formatTime(restDayStartTime!!)
-        }
+        restDayEndTime = restDayStartTime?.plus(36 * 60 * 60 * 1000) // 36 hours later
+        binding.buttonSetRestDayStart.text = formatTimeRange(restDayStartTime!!, restDayEndTime!!)
+
+
+        val lastFetchTime = preferencesManager.getLastFetchTime()
+        binding.buttonFetchHolidays.text = "$lastFetchTime"
     }
 }
+

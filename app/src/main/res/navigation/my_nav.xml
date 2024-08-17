@@ -39,7 +39,7 @@
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="il.co.paycalc.ui.screens.SettingsFragment"
+        android:name="il.co.paycalc.ui.SettingsFragment"
         android:label="SettingsFragment" >
         <action
             android:id="@+id/action_settingsFragment_to_allItemsFragment2"

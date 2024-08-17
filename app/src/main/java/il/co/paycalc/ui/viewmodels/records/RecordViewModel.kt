@@ -2,17 +2,15 @@ package il.co.paycalc.ui.viewmodels.records
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import il.co.paycalc.data.model.holiday.Holiday
 import il.co.paycalc.data.repository.RecordRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.Date
 
 class RecordViewModel(private val recordRepository: RecordRepository): ViewModel() {
 
-    var departures = recordRepository.getDepartures()
+    var holidays = recordRepository.getHolidays()
 
     fun getRecords(){
         viewModelScope.launch(Dispatchers.IO){
@@ -25,9 +23,9 @@ class RecordViewModel(private val recordRepository: RecordRepository): ViewModel
 //        emit(recordRepository.isHoliday(date))
 //    }
 
-    fun getDepartures() {
+    fun getHolidays() {
         viewModelScope.launch(Dispatchers.IO) {
-            departures = recordRepository.getDepartures()
+            holidays = recordRepository.getHolidays()
         }
     }
 

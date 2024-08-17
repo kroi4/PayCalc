@@ -27,4 +27,7 @@
     <string name="start_time">Start Time</string>
     <string name="end_time">End Time</string>
     <string name="rest_times">Rest Time</string>
+    <string name="holidays_update">Holidays Update</string>
+    <string name="couldnt_connect_to_server">Couldn\'t connect to server</string>
+    <string name="update_now">Update Now</string>
 </resources>

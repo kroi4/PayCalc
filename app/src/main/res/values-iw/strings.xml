@@ -27,4 +27,7 @@
     <string name="start_time">שעת התחלה</string>
     <string name="end_time">שעת סיום</string>
     <string name="rest_times">זמני מנוחה</string>
+    <string name="holidays_update">עדכון חגים</string>
+    <string name="couldnt_connect_to_server">לא ניתן להתחבר לשרת</string>
+    <string name="update_now">עדכן עכשיו</string>
 </resources>

@@ -1,6 +1,6 @@
 package il.co.paycalc.data.remoteDb
 
-import il.co.skystar.utils.Resource
+import il.co.paycalc.utils.Resource
 import retrofit2.Response
 
 abstract class BaseDataSource {

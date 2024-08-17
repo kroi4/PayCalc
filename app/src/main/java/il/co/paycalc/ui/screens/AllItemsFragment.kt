@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -23,15 +22,19 @@ import il.co.paycalc.ui.viewmodels.records.RecordViewModel
 import il.co.paycalc.ui.viewmodels.worksession.WorkSessionViewModel
 import il.co.paycalc.ui.viewmodels.worksession.WorkSessionViewModelFactory
 import il.co.paycalc.utils.autoCleared
-import il.co.skystar.utils.Loading
-import il.co.skystar.utils.Success
+import il.co.paycalc.utils.showToast
+import il.co.paycalc.utils.Loading
+import il.co.paycalc.utils.PreferencesManager
+import il.co.paycalc.utils.Success
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemListener {
 
     private var binding: AllItemLayoutBinding by autoCleared()
     private val viewModel: RecordViewModel by activityViewModels()
-
+    private lateinit var preferencesManager: PreferencesManager
     private lateinit var adapter: EventAdapter
 
     // יצירת ViewModel עם ה-Factory
@@ -52,6 +55,9 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
         savedInstanceState: Bundle?
     ): View? {
         binding = AllItemLayoutBinding.inflate(inflater, container, false)
+
+        preferencesManager = PreferencesManager(requireContext())
+
 
         // הגדרת ה-recordDao
         val database = RecordDatabase.getDatabase(requireContext())
@@ -75,12 +81,14 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        fetch()
+        fetchHolidays()
 
         binding.recycler.layoutManager = LinearLayoutManager(requireContext())
 
         // יצירת ה-Adapter עם כל הפרמטרים הנדרשים
-        adapter = EventAdapter(mutableListOf(), this, recordDao, workSessionViewModel, viewLifecycleOwner)
+        adapter = EventAdapter(mutableListOf(), this, workSessionViewModel, viewLifecycleOwner)
+        binding.recycler.adapter = adapter
+
         binding.recycler.adapter = adapter
 
         // להאזין לנתונים מ-ViewModel ולעדכן את ה-RecyclerView
@@ -131,29 +139,22 @@ class AllItemsFragment : Fragment(R.layout.all_item_layout), EventAdapter.ItemLi
         // טיפול בלחיצה ארוכה על פריט
     }
 
-    fun fetch() {
-        viewModel.getDepartures()
-        viewModel.departures.observe(viewLifecycleOwner) {
+    private fun fetchHolidays() {
+        viewModel.getHolidays()
+        viewModel.holidays.observe(viewLifecycleOwner) {
             when (it.status) {
                 is Loading -> {}
                 is Success -> {
                     if (!it.status.data.isNullOrEmpty()) {
-                        // עיבוד נתונים במקרה של הצלחה
+                        val currentTime = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
+                        preferencesManager.saveLastFetchTime(currentTime)
                     }
                 }
                 is Error -> {
-                    Toast.makeText(
-                        requireContext(),
-                        "Couldn't connect to server!",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showToast(requireContext(),getString(R.string.couldnt_connect_to_server))
                 }
                 else -> {
-                    Toast.makeText(
-                        requireContext(),
-                        "Couldn't connect to server!",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    showToast(requireContext(),getString(R.string.couldnt_connect_to_server))
                 }
             }
         }

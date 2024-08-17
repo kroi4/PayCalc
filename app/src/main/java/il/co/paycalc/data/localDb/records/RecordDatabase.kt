@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import il.co.paycalc.data.model.holiday.Record
 
 
-@Database(entities = [Record::class], version = 2, exportSchema = false)
+@Database(entities = [Record::class], version = 6, exportSchema = false)
 abstract class RecordDatabase : RoomDatabase() {
 
     abstract fun recordDao(): RecordDao

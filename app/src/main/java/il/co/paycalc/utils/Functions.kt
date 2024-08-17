@@ -1,7 +1,12 @@
 package il.co.paycalc.utils
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import il.co.paycalc.R
 import il.co.paycalc.data.localDb.records.RecordDao
 import java.time.LocalDate
 import java.time.ZoneId
@@ -36,6 +41,8 @@ suspend fun calculateTotalSalary(
     val workDurationInMillis = endDate.time - startDate.time
     val workDurationInHours = (workDurationInMillis / (1000 * 60 * 60)).toInt()
 
+    Log.d("calculateTotalSalary", "Work duration in hours: $workDurationInHours")
+
     for (i in 0 until workDurationInHours) {
         val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
         val currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
@@ -49,8 +56,9 @@ suspend fun calculateTotalSalary(
         val isRestTime = (currentDayOfWeek == Calendar.SATURDAY ||
                 (currentDayOfWeek == Calendar.FRIDAY && currentHour >= restStartHour) ||
                 (currentDayOfWeek == restEndDayOfWeek && currentHour < restEndHour) ||
-                (isHoliday(currentDate, holidayDao) && currentHour >= restStartHour) ||
-                (isHoliday(currentDate, holidayDao) && currentHour < restEndHour))
+                (isHoliday(currentDate, holidayDao)))
+
+        Log.d("calculateTotalSalary", "Checking hour $currentHour on $currentDate, isRestTime: $isRestTime, isNightHour: $isNightHour")
 
         if (isRestTime) {
             restTimeHoursCount++
@@ -58,12 +66,14 @@ suspend fun calculateTotalSalary(
             if (restTimeHoursCount >= 3) {
                 currentRate += 0.5  // תוספת לשעה השלישית ואילך בזמן מנוחה
             }
+            Log.d("calculateTotalSalary", "Additional rate for rest time: $currentRate")
         } else {
             restTimeHoursCount = 0  // איפוס המונה אם זה לא זמן מנוחה
         }
 
         if (isNightHour) {
             currentRate += 0.25
+            Log.d("calculateTotalSalary", "Additional rate for night hour: $currentRate")
         }
 
         // הגבלת תעריף ל-200% (2.0)
@@ -75,43 +85,76 @@ suspend fun calculateTotalSalary(
         totalWage += currentWage
         totalHours++
 
+        Log.d("calculateTotalSalary", "Current hour: $currentHour, Rate: $currentRate, Wage for hour: $currentWage, Accumulated wage: $totalWage")
+
         calendar.add(Calendar.HOUR_OF_DAY, 1)
     }
 
     totalWage += totalHours * additionalWages
 
-    return totalWage*4
+    Log.d("calculateTotalSalary", "Total hours: $totalHours, Additional wages: $additionalWages, Final wage: $totalWage")
+
+    return totalWage
 }
 
-// פונקציה שבודקת האם מדובר ביום חג או ערב חג
 suspend fun isHoliday(date: LocalDate, recordDao: RecordDao): Boolean {
     val dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    val dateAsString = date.format(dateFormat)
-    val record = recordDao.getHolidayByDate(dateAsString)
+    Log.d("isHoliday", "Checking holiday for date: $date")
 
-    return if (record != null && record.Name.isNotEmpty()) {
-        val isEve = isEveOfHoliday(record.Name)
-        val isFullHoliday = isFullHoliday(record.Name)
+    // שליפת רשומות החגים ממסד הנתונים
+    val holidays = recordDao.getAllHolidays()
 
-        // אם זה ערב חג או חג שבתון - החישוב ייקח זאת בחשבון
-        isEve || isFullHoliday
-    } else {
-        false
+    // בדיקה אם התאריך נמצא באחד החגים המוגדרים
+    holidays.forEach { holiday ->
+        val startDate = LocalDate.parse(holiday.HolidayStart.substring(0, 10), dateFormat)
+        val endDate = LocalDate.parse(holiday.HolidayEnds.substring(0, 10), dateFormat)
+
+        if (date.isEqual(startDate) || date.isEqual(endDate) || (date.isAfter(startDate) && date.isBefore(endDate))) {
+            // בדיקה אם החג הוא אחד מהחגים המלאים על פי הרשימה שסיפקת
+            if (isFullHoliday(holiday.Name, date, startDate)) {
+                return true
+            }
+        }
     }
+    return false
 }
 
-
-private fun isEveOfHoliday(holidayName: String): Boolean {
-    return listOf("ראש השנה", "יום כיפור", "פסח", "שבועות", "סוכות").contains(holidayName)
+private fun isFullHoliday(holidayName: String, date: LocalDate, startDate: LocalDate): Boolean {
+    val isHoliday = when (holidayName) {
+        "ראש השנה" -> isBetweenDays(date, startDate, 1, 3)
+        "יום כיפור" -> isBetweenDays(date, startDate, 1, 2)
+        "פסח" -> isPassoverHoliday(date, startDate)
+        "שבועות" -> isBetweenDays(date, startDate, 1, 2)
+        "סוכות" -> isSukkotHoliday(date, startDate)
+        "יום העצמאות" -> isBetweenDays(date, startDate, 1, 1)
+        else -> false
+    }
+    Log.d("isFullHoliday", "Holiday check for $holidayName: $isHoliday")
+    return isHoliday
 }
 
-private fun isFullHoliday(holidayName: String): Boolean {
-    return listOf("ראש השנה", "יום כיפור", "פסח", "שבועות", "סוכות", "יום העצמאות").contains(holidayName)
+// פונקציה כללית לבדיקת טווח ימים
+private fun isBetweenDays(date: LocalDate, startDate: LocalDate, startDay: Int, endDay: Int): Boolean {
+    val relativeDay = date.toEpochDay() - startDate.toEpochDay() + 1
+    Log.d("isBetweenDays", "Relative day: $relativeDay, startDay: $startDay, endDay: $endDay")
+    return relativeDay in startDay..endDay
 }
 
+// פונקציה לבדיקת ימי חג פסח
+private fun isPassoverHoliday(date: LocalDate, startDate: LocalDate): Boolean {
+    val isHoliday = isBetweenDays(date, startDate, 1, 2) || isBetweenDays(date, startDate, 7, 8)
+    Log.d("isPassoverHoliday", "Passover holiday check: $isHoliday")
+    return isHoliday
+}
+
+// פונקציה לבדיקת ימי חג סוכות
+private fun isSukkotHoliday(date: LocalDate, startDate: LocalDate): Boolean {
+    val isHoliday = isBetweenDays(date, startDate, 1, 2) || isBetweenDays(date, startDate, 8, 9)
+    Log.d("isSukkotHoliday", "Sukkot holiday check: $isHoliday")
+    return isHoliday
+}
 
 fun showToast(context: Context, text: String) {
     val toast = Toast.makeText(context, text, Toast.LENGTH_SHORT)
     toast.show()
 }
-

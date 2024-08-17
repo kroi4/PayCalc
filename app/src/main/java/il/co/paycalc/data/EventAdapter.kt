@@ -24,7 +24,6 @@ import java.util.Locale
 class EventAdapter(
     private var work: MutableList<WorkSession>,
     private val callBack: ItemListener,
-    private val recordDao: RecordDao, // הוספת ה-DAO לפונקציה
     private val workSessionViewModel: WorkSessionViewModel, // מעבירים את ה-ViewModel מבחוץ
     private val lifecycleOwner: LifecycleOwner // מעבירים גם את ה-LifecycleOwner מבחוץ
 ) : RecyclerView.Adapter<EventAdapter.ItemViewHolder>() {
@@ -109,15 +108,6 @@ class EventAdapter(
 
             // חישוב שכר בתוך Coroutine
             CoroutineScope(Dispatchers.Main).launch {
-                val totalSalary = calculateTotalSalary(
-                    work.startDateTime,
-                    work.endDateTime,
-                    work.hourlyWage,
-                    work.additionalWages,
-                    restStartHour,
-                    recordDao // הוספת ה-DAO כפרמטר
-                )
-
                 // להאזין לנתונים מ-ViewModel ולעדכן את השכר
                 workSessionViewModel.getWorkSessionById(work.id).observe(lifecycleOwner) { workSession: WorkSession? ->
                     if (workSession != null) {
@@ -125,8 +115,6 @@ class EventAdapter(
                     }
                 }
 
-
-//                binding.salaryTextView.text = String.format(Locale.getDefault(), "%.2f₪", totalSalary)
             }
 
             val totalMinutes = (work.endDateTime.time - work.startDateTime.time) / (1000 * 60)

@@ -1,4 +1,4 @@
-package il.co.skystar.utils
+package il.co.paycalc.utils
 
 class Resource<out T> private constructor(val status: Status<T>){
 
