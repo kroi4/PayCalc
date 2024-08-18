@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import il.co.paycalc.R
 import il.co.paycalc.data.localDb.events.EventDatabase
@@ -22,6 +23,7 @@ import il.co.paycalc.utils.PreferencesManager
 import il.co.paycalc.utils.Success
 import il.co.paycalc.utils.autoCleared
 import il.co.paycalc.utils.showToast
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Calendar
@@ -73,8 +75,9 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
             buttonFetchHolidays.text = lastFetchTime
 
             buttonFetchHolidays.setOnClickListener {
-                fetchHolidays()
-            }
+                viewLifecycleOwner.lifecycleScope.launch {
+                    fetchHolidays()
+                }            }
 
             buttonSetMorningShift.setOnClickListener {
                 showTimeRangePicker { startTime, endTime ->
@@ -151,31 +154,38 @@ class SettingsFragment : Fragment(R.layout.settings_layout) {
     }
 
     private fun fetchHolidays() {
-
         viewModel.getHolidays()
         viewModel.holidays.observe(viewLifecycleOwner) {
+            println("Status: ${it.status}")
             when (it.status) {
-                is Loading -> {}
+                is Loading -> {
+                    println("Status: Loading")
+                }
                 is Success -> {
-                    if (!it.status.data.isNullOrEmpty()) {
+                    println("Status: Success")
+                    val data = it.status.data
+                    if (data.isNullOrEmpty()) {
+                        println("Success but data is empty or null - treating as an error")
+                        showToast(requireContext(), getString(R.string.couldnt_connect_to_server))
+                    } else {
                         val currentTime = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
                         preferencesManager.saveLastFetchTime(currentTime)
-
+                        println("enter to Success")
                         initializeSettingsView()
                     }
                 }
-
                 is Error -> {
+                    println("Status: Error, Message: ${it.status.message}")
                     showToast(requireContext(), getString(R.string.couldnt_connect_to_server))
                 }
-
                 else -> {
+                    println("Unexpected status: ${it.status}")
                     showToast(requireContext(), getString(R.string.couldnt_connect_to_server))
                 }
             }
         }
-
     }
+
 
 
     private fun showTimeRangePicker(onTimeRangeSelected: (Long, Long) -> Unit) {

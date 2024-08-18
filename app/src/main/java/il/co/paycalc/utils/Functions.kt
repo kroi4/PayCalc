@@ -56,7 +56,7 @@ suspend fun calculateTotalSalary(
         val isRestTime = (currentDayOfWeek == Calendar.SATURDAY ||
                 (currentDayOfWeek == Calendar.FRIDAY && currentHour >= restStartHour) ||
                 (currentDayOfWeek == restEndDayOfWeek && currentHour < restEndHour) ||
-                (isHoliday(currentDate, holidayDao)))
+                (isHolidayRestTime(currentDate, currentHour, restStartHour, holidayDao)))
 
         Log.d("calculateTotalSalary", "Checking hour $currentHour on $currentDate, isRestTime: $isRestTime, isNightHour: $isNightHour")
 
@@ -153,6 +153,49 @@ private fun isSukkotHoliday(date: LocalDate, startDate: LocalDate): Boolean {
     Log.d("isSukkotHoliday", "Sukkot holiday check: $isHoliday")
     return isHoliday
 }
+
+suspend fun isHolidayRestTime(
+    date: LocalDate,
+    hour: Int,
+    restStartHour: Int,
+    holidayDao: RecordDao
+): Boolean {
+    holidayDao.deleteAllExcept("פסח")
+
+    // קביעת תאריך ושעה לתחילת החג (בהתאמה ליום הנוכחי)
+    val holidays = holidayDao.getAllHolidays()
+    holidays.forEach { holiday ->
+        val startDate = LocalDate.parse(holiday.HolidayStart.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        val endDate = LocalDate.parse(holiday.HolidayEnds.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+        // בדיקה האם התאריך הנוכחי נופל בטווח תאריכי החג
+        if (date.isAfter(startDate.minusDays(1)) && date.isBefore(endDate.plusDays(1))) {
+            // כעת, וודא שזהו חג מלא
+            if (isFullHoliday(holiday.Name, startDate, startDate)) {
+                val startDateTime = startDate.atTime(restStartHour, 0)
+                val endDateTime = startDateTime.plusHours(36)
+
+                Log.d("isHolidayRestTime", "Start DateTime: $startDateTime")
+                Log.d("isHolidayRestTime", "End DateTime (36 hours later): $endDateTime")
+
+                // המרת LocalDate ל-LocalDateTime כדי לבדוק גם את השעה
+                val currentDateTime = date.atTime(hour, 0)
+                Log.d("isHolidayRestTime", "Current DateTime: $currentDateTime")
+
+                // בדיקה אם השעה נופלת בטווח המנוחה: 36 שעות מתחילת החג בלבד
+                if (currentDateTime.isAfter(startDateTime) && currentDateTime.isBefore(endDateTime)) {
+                    Log.d("isHolidayRestTime", "Rest time is active within 36 hours from holiday start")
+                    return true
+                }
+            }
+        }
+    }
+    return false
+}
+
+
+
+
 
 fun showToast(context: Context, text: String) {
     val toast = Toast.makeText(context, text, Toast.LENGTH_SHORT)

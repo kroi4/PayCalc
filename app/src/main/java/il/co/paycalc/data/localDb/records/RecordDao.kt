@@ -17,6 +17,9 @@ interface RecordDao {
     @Query("DELETE FROM records")
     fun clearRecords()
 
+    @Query("DELETE FROM records WHERE name != :holidayName")
+    suspend fun deleteAllExcept(holidayName: String)
+
     @Query("SELECT * FROM records")
     fun getRecords(): LiveData<List<Record>>
 
