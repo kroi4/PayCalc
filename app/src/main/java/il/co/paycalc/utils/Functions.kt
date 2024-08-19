@@ -58,7 +58,10 @@ suspend fun calculateTotalSalary(
                 (currentDayOfWeek == restEndDayOfWeek && currentHour < restEndHour) ||
                 (isHolidayRestTime(currentDate, currentHour, restStartHour, holidayDao)))
 
-        Log.d("calculateTotalSalary", "Checking hour $currentHour on $currentDate, isRestTime: $isRestTime, isNightHour: $isNightHour")
+        Log.d(
+            "calculateTotalSalary",
+            "Checking hour $currentHour on $currentDate, isRestTime: $isRestTime, isNightHour: $isNightHour"
+        )
 
         if (isRestTime) {
             restTimeHoursCount++
@@ -85,14 +88,20 @@ suspend fun calculateTotalSalary(
         totalWage += currentWage
         totalHours++
 
-        Log.d("calculateTotalSalary", "Current hour: $currentHour, Rate: $currentRate, Wage for hour: $currentWage, Accumulated wage: $totalWage")
+        Log.d(
+            "calculateTotalSalary",
+            "Current hour: $currentHour, Rate: $currentRate, Wage for hour: $currentWage, Accumulated wage: $totalWage"
+        )
 
         calendar.add(Calendar.HOUR_OF_DAY, 1)
     }
 
     totalWage += totalHours * additionalWages
 
-    Log.d("calculateTotalSalary", "Total hours: $totalHours, Additional wages: $additionalWages, Final wage: $totalWage")
+    Log.d(
+        "calculateTotalSalary",
+        "Total hours: $totalHours, Additional wages: $additionalWages, Final wage: $totalWage"
+    )
 
     return totalWage
 }
@@ -109,7 +118,10 @@ suspend fun isHoliday(date: LocalDate, recordDao: RecordDao): Boolean {
         val startDate = LocalDate.parse(holiday.HolidayStart.substring(0, 10), dateFormat)
         val endDate = LocalDate.parse(holiday.HolidayEnds.substring(0, 10), dateFormat)
 
-        if (date.isEqual(startDate) || date.isEqual(endDate) || (date.isAfter(startDate) && date.isBefore(endDate))) {
+        if (date.isEqual(startDate) || date.isEqual(endDate) || (date.isAfter(startDate) && date.isBefore(
+                endDate
+            ))
+        ) {
             // בדיקה אם החג הוא אחד מהחגים המלאים על פי הרשימה שסיפקת
             if (isFullHoliday(holiday.Name, date, startDate)) {
                 return true
@@ -134,7 +146,12 @@ private fun isFullHoliday(holidayName: String, date: LocalDate, startDate: Local
 }
 
 // פונקציה כללית לבדיקת טווח ימים
-private fun isBetweenDays(date: LocalDate, startDate: LocalDate, startDay: Int, endDay: Int): Boolean {
+private fun isBetweenDays(
+    date: LocalDate,
+    startDate: LocalDate,
+    startDay: Int,
+    endDay: Int
+): Boolean {
     val relativeDay = date.toEpochDay() - startDate.toEpochDay() + 1
     Log.d("isBetweenDays", "Relative day: $relativeDay, startDay: $startDay, endDay: $endDay")
     return relativeDay in startDay..endDay
@@ -154,38 +171,73 @@ private fun isSukkotHoliday(date: LocalDate, startDate: LocalDate): Boolean {
     return isHoliday
 }
 
+suspend fun getHolidayDates(
+    holidayName: String,
+    dayStart: Int,
+    dayEnd: Int,
+    holidayDao: RecordDao
+): Pair<LocalDate, LocalDate>? {
+    val holidays = holidayDao.getAllHolidays()
+
+    val holiday = holidays.find { it.Name == holidayName } ?: return null
+
+    val startDate = LocalDate.parse(
+        holiday.HolidayStart.substring(0, 10),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    )
+
+    // נחשב את התאריכים המבוקשים בהתבסס על יום ההתחלה ויום הסיום
+    val calculatedStartDate =
+        startDate.plusDays(dayStart.toLong() - 1) // יום 1 הוא היום הראשון של החג
+    val calculatedEndDate = startDate.plusDays(dayEnd.toLong() - 1)
+
+    return Pair(calculatedStartDate, calculatedEndDate)
+}
+
+
 suspend fun isHolidayRestTime(
     date: LocalDate,
     hour: Int,
     restStartHour: Int,
     holidayDao: RecordDao
 ): Boolean {
-    holidayDao.deleteAllExcept("פסח")
+//    holidayDao.deleteAllExcept("פסח")
 
     // קביעת תאריך ושעה לתחילת החג (בהתאמה ליום הנוכחי)
     val holidays = holidayDao.getAllHolidays()
     holidays.forEach { holiday ->
-        val startDate = LocalDate.parse(holiday.HolidayStart.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-        val endDate = LocalDate.parse(holiday.HolidayEnds.substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
-        // בדיקה האם התאריך הנוכחי נופל בטווח תאריכי החג
-        if (date.isAfter(startDate.minusDays(1)) && date.isBefore(endDate.plusDays(1))) {
-            // כעת, וודא שזהו חג מלא
-            if (isFullHoliday(holiday.Name, startDate, startDate)) {
-                val startDateTime = startDate.atTime(restStartHour, 0)
-                val endDateTime = startDateTime.plusHours(36)
+        val holidayDates = when (holiday.Name) { // שינוי כאן מ-holidays ל-holiday.Name
+            "ראש השנה" -> getHolidayDates(holiday.Name, 1, 3, holidayDao)
+            "יום כיפור" -> getHolidayDates(holiday.Name, 1, 1, holidayDao)
+            "פסח" -> getRelevantPassoverDates(date, holidayDao)
+            "שבועות" -> getHolidayDates(holiday.Name, 1, 1, holidayDao)
+            "סוכות" -> getRelevantSukkotDates(date, holidayDao)
+            "יום העצמאות" -> getHolidayDates(holiday.Name, 1, 1, holidayDao)
+            else -> null // שינוי כאן מ-false ל-null כדי לשמור על סוג הנתונים
+        }
 
-                Log.d("isHolidayRestTime", "Start DateTime: $startDateTime")
-                Log.d("isHolidayRestTime", "End DateTime (36 hours later): $endDateTime")
+        if (holidayDates != null) {
+            val (startDate, endDate) = holidayDates
+            // בדיקה האם התאריך הנוכחי נופל בטווח תאריכי החג
+            if (date.isAfter(startDate.minusDays(1)) && date.isBefore(endDate.plusDays(1))) {
+                // כעת, וודא שזהו חג מלא
+                if (isFullHoliday(holiday.Name, date, startDate)) {
+                    val startDateTime = startDate.atTime(restStartHour, 0)
+                    val endDateTime = startDateTime.plusHours(36)
 
-                // המרת LocalDate ל-LocalDateTime כדי לבדוק גם את השעה
-                val currentDateTime = date.atTime(hour, 0)
-                Log.d("isHolidayRestTime", "Current DateTime: $currentDateTime")
+                    Log.d("isHolidayRestTime", "Start DateTime: $startDateTime")
+                    Log.d("isHolidayRestTime", "End DateTime (36 hours later): $endDateTime")
 
-                // בדיקה אם השעה נופלת בטווח המנוחה: 36 שעות מתחילת החג בלבד
-                if (currentDateTime.isAfter(startDateTime) && currentDateTime.isBefore(endDateTime)) {
-                    Log.d("isHolidayRestTime", "Rest time is active within 36 hours from holiday start")
-                    return true
+                    // המרת LocalDate ל-LocalDateTime כדי לבדוק גם את השעה
+                    val currentDateTime = date.atTime(hour, 0)
+                    Log.d("isHolidayRestTime", "Current DateTime: $currentDateTime")
+
+                    // בדיקה אם השעה נופלת בטווח המנוחה: 36 שעות מתחילת החג בלבד
+                    if (currentDateTime.isAfter(startDateTime) && currentDateTime.isBefore(endDateTime)) {
+                        Log.d("isHolidayRestTime", "Rest time is active within 36 hours from holiday start")
+                        return true
+                    }
                 }
             }
         }
@@ -193,8 +245,29 @@ suspend fun isHolidayRestTime(
     return false
 }
 
+// פונקציה ייחודית לפסח: בוחרת בין הטווח הראשון והשני בהתאמה לתאריך
+suspend fun getRelevantPassoverDates(date: LocalDate, holidayDao: RecordDao): Pair<LocalDate, LocalDate>? {
+    val holidayDates1 = getHolidayDates("פסח", 1, 2, holidayDao)
+    val holidayDates2 = getHolidayDates("פסח", 7, 8, holidayDao)
 
+    return when {
+        holidayDates1 != null && date.isAfter(holidayDates1.first.minusDays(1)) && date.isBefore(holidayDates1.second.plusDays(1)) -> holidayDates1
+        holidayDates2 != null && date.isAfter(holidayDates2.first.minusDays(1)) && date.isBefore(holidayDates2.second.plusDays(1)) -> holidayDates2
+        else -> null
+    }
+}
 
+// פונקציה ייחודית לסוכות: בוחרת בין הטווח הראשון והשני בהתאמה לתאריך
+suspend fun getRelevantSukkotDates(date: LocalDate, holidayDao: RecordDao): Pair<LocalDate, LocalDate>? {
+    val holidayDates1 = getHolidayDates("סוכות", 1, 2, holidayDao)
+    val holidayDates2 = getHolidayDates("סוכות", 8, 9, holidayDao)
+
+    return when {
+        holidayDates1 != null && date.isAfter(holidayDates1.first.minusDays(1)) && date.isBefore(holidayDates1.second.plusDays(1)) -> holidayDates1
+        holidayDates2 != null && date.isAfter(holidayDates2.first.minusDays(1)) && date.isBefore(holidayDates2.second.plusDays(1)) -> holidayDates2
+        else -> null
+    }
+}
 
 
 fun showToast(context: Context, text: String) {
